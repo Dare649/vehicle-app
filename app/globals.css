@@ -4,10 +4,10 @@
 @theme {
 
   /* font family */
-  --font-primary:  "Poppins", serif;
+  --font-primary:  "Poppins";
 
   /* colors */
-  --color-primary-1: #68d619;
+  --color-primary-1: #000335;
   
 
   /* screen size */
@@ -15,4 +15,16 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   
+}
+
+
+.custom-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background-color: "#000335";
+  border-radius: 10px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }

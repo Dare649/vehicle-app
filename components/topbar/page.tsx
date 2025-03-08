@@ -29,7 +29,7 @@ const TopNav = () => {
     };
 
     return (
-        <div className="w-full fixed top-0">
+        <div className="w-full fixed top-0 z-50">
             <div className="flex justify-end p-3">
                 <div className="flex items-center gap-5">
                     {/* Profile Image */}
@@ -47,7 +47,7 @@ const TopNav = () => {
 
                     {/* Sign Out Button */}
                     <button 
-                        className="text-red-500 font-semibold flex items-center gap-x-1 px-3 py-1 rounded-md hover:bg-red-100 transition-all duration-200"
+                        className="text-red-500 font-semibold flex items-center gap-x-1 px-3 py-1 transition-all duration-200 cursor-pointer"
                         onClick={handleSignout}
                         disabled={isLoading} // Prevents multiple clicks
                     >

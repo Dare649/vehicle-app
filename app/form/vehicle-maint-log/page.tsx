@@ -5,7 +5,11 @@ import { IoMdClose } from "react-icons/io";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const VehicleMaintenanceLog = () => {
+interface VehicleMaintenanceLogProps {
+  handleClose: () => void;
+}
+
+const VehicleMaintenanceLog: React.FC<VehicleMaintenanceLogProps> = ({ handleClose}) => {
   const [selectedYear, setSelectedYear] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -14,7 +18,7 @@ const VehicleMaintenanceLog = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="font-bold lg:text-xl sm:text-lg capitalize">Vehicle Maintenance Log</h2>
-        <div>
+        <div onClick={handleClose}>
           <IoMdClose size={30} className="text-red-500 cursor-pointer" />
         </div>
       </div>
@@ -25,7 +29,7 @@ const VehicleMaintenanceLog = () => {
       </div>
 
       {/* Scrollable Content */}
-      <div className="w-full lg:p-3 sm:p-2 flex-1 overflow-y-auto">
+      <div className="w-full lg:p-3 sm:p-2 flex-1 overflow-y-auto custom-scroll">
         <form className="w-full">
           {/* Vehicle Details */}
           <h2 className="font-bold text-gray-400 uppercase">Vehicle Details</h2>

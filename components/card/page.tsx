@@ -23,7 +23,7 @@ const Card: React.FC<CardProps> = ({ text, backgroundImage, className }) => {
       />
 
       {/* Dark Overlay for Text Readability */}
-      <div className="absolute inset-0 "></div>
+      <div className="absolute inset-0 bg-black/50"></div>
 
       {/* Text Positioned at Bottom */}
       <div className="absolute bottom-4 left-4 text-white">

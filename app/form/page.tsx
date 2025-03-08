@@ -6,7 +6,7 @@ import { form } from "@/data/dummy";
 import Modal from "@/components/modal/page";
 import VehicleMaintenanceLog from "./vehicle-maint-log/page";
 import CheckList from "./monthly-vehicle-maintenance-checklist/page";
-import VehicleMovementRegistration from "./vehicle-movement-registration/page";
+import VehicleMovementRegistration from "./vehicle-movement-register/page";
 import DailyInspection from "./daily-inspection/page";
 import VehicleMaintenanceRequestForm from "./vehicle-maintenance-request-form/page";
 
@@ -30,15 +30,15 @@ const Form: React.FC = () => {
   const renderForm = () => {
     switch (selectedText) {
       case "vehicle maintenance log":
-        return <VehicleMaintenanceLog />;
+        return <VehicleMaintenanceLog handleClose={handleClose}/>;
       case "monthly vehicle maintenance checklist":
         return <CheckList />;
       case "vehicle movement register":
-        return <VehicleMovementRegistration />;
+        return <VehicleMovementRegistration handleClose={handleClose}/>;
       case "daily inspection":
         return <DailyInspection />;
       default:
-        return <VehicleMaintenanceRequestForm />;
+        return <VehicleMaintenanceRequestForm handleClose={handleClose}/>;
     }
   };
 
