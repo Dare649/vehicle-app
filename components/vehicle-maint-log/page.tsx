@@ -9,7 +9,7 @@ interface VehicleMaintenanceLogProps {
   handleClose: () => void;
 }
 
-const VehicleMaintenanceLog: React.FC<VehicleMaintenanceLogProps> = ({ handleClose}) => {
+const VehicleMaintenanceLog = ({ handleClose }: VehicleMaintenanceLogProps) => {
   const [selectedYear, setSelectedYear] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -31,7 +31,6 @@ const VehicleMaintenanceLog: React.FC<VehicleMaintenanceLogProps> = ({ handleClo
       {/* Scrollable Content */}
       <div className="w-full lg:p-3 sm:p-2 flex-1 overflow-y-auto custom-scroll">
         <form className="w-full">
-          {/* Vehicle Details */}
           <h2 className="font-bold text-gray-400 uppercase">Vehicle Details</h2>
           <div className="py-2">
             <hr className="w-full border-none h-0.5 bg-gray-300" />

@@ -9,7 +9,7 @@ interface VehicleMovementRegisterProps {
   handleClose: () => void;
 }
 
-const VehicleMovementRegister: React.FC<VehicleMovementRegisterProps> = ({ handleClose}) => {
+const VehicleMovementRegister = ({ handleClose }: VehicleMovementRegisterProps) => {
   const [selectedWeek, setSelectedWeek] = useState<Date | null>(null);
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);

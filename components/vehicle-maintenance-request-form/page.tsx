@@ -9,7 +9,7 @@ interface VehicleMaintenanceRequestFormProps {
   handleClose: () => void;
 }
 
-const VehicleMaintenanceRequestForm: React.FC<VehicleMaintenanceRequestFormProps> = ({ handleClose}) => {
+const VehicleMaintenanceRequestForm = ({ handleClose }: VehicleMaintenanceRequestFormProps) => {
   const [completedDate, setCompletedDate] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [signature, setSignature] = useState<string | null>(null);

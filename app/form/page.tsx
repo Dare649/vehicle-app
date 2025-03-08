@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import Card from "@/components/card/page";
 import { form } from "@/data/dummy";
 import Modal from "@/components/modal/page";
-import VehicleMaintenanceLog from "./vehicle-maint-log/page";
-import CheckList from "./monthly-vehicle-maintenance-checklist/page";
-import VehicleMovementRegistration from "./vehicle-movement-register/page";
-import DailyInspection from "./daily-inspection/page";
-import VehicleMaintenanceRequestForm from "./vehicle-maintenance-request-form/page";
+import VehicleMaintenanceLog from "../../components/vehicle-maint-log/page";
+import CheckList from "../../components/monthly-vehicle-maintenance-checklist/page";
+import VehicleMovementRegistration from "../../components/vehicle-movement-register/page";
+import DailyInspection from "../../components/daily-inspection/page";
+import VehicleMaintenanceRequestForm from "../../components/vehicle-maintenance-request-form/page";
 
 const Form: React.FC = () => {
   const [open, setOpen] = useState(false);
