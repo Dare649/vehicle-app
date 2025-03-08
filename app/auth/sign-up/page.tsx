@@ -107,7 +107,7 @@ const Signup = () => {
       {/* Image Section */}
       <div className="sm:w-0 lg:w-[60%] h-screen flex items-center justify-center">
         <Image
-          src={'/car1.jpg'}
+          src={'/img4.jpg'}
           alt="vehicle-form-app"
           width={800}
           height={600}
