@@ -36,7 +36,7 @@ const Form: React.FC = () => {
       case "vehicle movement register":
         return <VehicleMovementRegistration handleClose={handleClose}/>;
       case "daily inspection":
-        return <DailyInspection />;
+        return <DailyInspection handleClose={handleClose}/>;
       default:
         return <VehicleMaintenanceRequestForm handleClose={handleClose}/>;
     }
