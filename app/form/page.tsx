@@ -5,7 +5,7 @@ import Card from "@/components/card/page";
 import { form } from "@/data/dummy";
 import Modal from "@/components/modal/page";
 import VehicleMaintenanceLog from "../../components/vehicle-maint-log/page";
-import CheckList from "../../components/monthly-vehicle-maintenance-checklist/page";
+import MonthlyVehicleMaintenanceChecklist from "../../components/monthly-vehicle-maintenance-checklist/page";
 import VehicleMovementRegistration from "../../components/vehicle-movement-register/page";
 import DailyInspection from "../../components/daily-inspection/page";
 import VehicleMaintenanceRequestForm from "../../components/vehicle-maintenance-request-form/page";
@@ -32,7 +32,7 @@ const Form: React.FC = () => {
       case "vehicle maintenance log":
         return <VehicleMaintenanceLog handleClose={handleClose}/>;
       case "monthly vehicle maintenance checklist":
-        return <CheckList />;
+        return <MonthlyVehicleMaintenanceChecklist handleClose={handleClose}/>;
       case "vehicle movement register":
         return <VehicleMovementRegistration handleClose={handleClose}/>;
       case "daily inspection":

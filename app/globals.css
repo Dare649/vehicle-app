@@ -4,7 +4,7 @@
 @theme {
 
   /* font family */
-  --font-primary:  "Poppins";
+  --font-primary:  "Montserrat", "sans-serif";
 
   /* colors */
   --color-primary-1: #000335;

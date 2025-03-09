@@ -8,6 +8,7 @@ import LoadingOverlay from "@/components/loading/page";
 import MainLayout from "@/components/mainLayout/page";
 import { usePathname } from "next/navigation";
 
+
 export default function RootLayout({
   children,
 }: { children: React.ReactNode }) {
