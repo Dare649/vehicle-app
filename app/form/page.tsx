@@ -9,6 +9,8 @@ import MonthlyVehicleMaintenanceChecklist from "../../components/monthly-vehicle
 import VehicleMovementRegistration from "../../components/vehicle-movement-register/page";
 import DailyInspection from "../../components/daily-inspection/page";
 import VehicleMaintenanceRequestForm from "../../components/vehicle-maintenance-request-form/page";
+import EmployeeWeeklyActivityReport from "@/components/emp-weekly-activity-report/page";
+import DailySiteReport from "@/components/daily-site-report/page";
 
 const Form: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -37,6 +39,10 @@ const Form: React.FC = () => {
         return <VehicleMovementRegistration handleClose={handleClose}/>;
       case "daily inspection":
         return <DailyInspection handleClose={handleClose}/>;
+      case "employee weekly activity report":
+        return <EmployeeWeeklyActivityReport handleClose={handleClose}/>;
+      case "daily site report":
+        return <DailySiteReport handleClose={handleClose}/>;
       default:
         return <VehicleMaintenanceRequestForm handleClose={handleClose}/>;
     }

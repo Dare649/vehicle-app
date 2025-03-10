@@ -30,6 +30,16 @@ export const form = [
         text: "daily inspection",
         bg: img5
     },
+    {
+        id: 6,
+        text: "employee weekly activity report",
+        bg: img5
+    },
+    {
+        id: 7,
+        text: "daily site report",
+        bg: img5
+    },
 ]
 
 
