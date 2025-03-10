@@ -51,7 +51,18 @@ const Signin = () => {
       {/* Form Section */}
       <div className="sm:w-full lg:w-[40%] h-screen flex items-center justify-center">
         <div className="w-full max-w-md flex flex-col items-center justify-center p-3">
-          <div className="w-full">
+          <div className="w-40 flex justify-center">
+            <Image
+              src={"/logo.png"}
+              alt="User Profile"
+              width={50}
+              height={50}
+              className="w-full"
+              quality={100}
+              priority
+            />
+          </div>
+          <div className="w-full lg:mt-10 sm:mt-5">
             <h2 className="text-xl sm:text-2xl text-left font-semibold">
               Welcome, <br /> Sign in to continue.
             </h2>

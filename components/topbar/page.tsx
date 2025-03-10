@@ -52,15 +52,15 @@ const TopNav = () => {
         >
             <div className="flex items-center justify-between p-3">
                 <div className="w-30">
-                <Image
-                    src={"/logo.png"}
-                    alt="User Profile"
-                    width={50}
-                    height={50}
-                    className="w-full"
-                    quality={100}
-                    priority
-                />
+                    <Image
+                        src={"/logo.png"}
+                        alt="User Profile"
+                        width={50}
+                        height={50}
+                        className="w-full"
+                        quality={100}
+                        priority
+                    />
                 </div>
                 <div className="flex items-center gap-5">
                 <div className="w-10 h-10 rounded-full overflow-hidden">

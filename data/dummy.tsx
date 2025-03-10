@@ -3,6 +3,8 @@ import img2 from "@/public/img2.jpg"
 import img3 from "@/public/img3.jpg"
 import img4 from "@/public/img4.jpg"
 import img5 from "@/public/img5.jpg"
+import emp from "@/public/emp.jpg"
+import site from "@/public/site.jpg"
 
 export const form = [
     {
@@ -33,12 +35,12 @@ export const form = [
     {
         id: 6,
         text: "employee weekly activity report",
-        bg: img5
+        bg: emp
     },
     {
         id: 7,
         text: "daily site report",
-        bg: img5
+        bg: site
     },
 ]
 
