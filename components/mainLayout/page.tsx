@@ -1,6 +1,9 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { RootState } from "@/redux/store";
 import TopNav from "../topbar/page";
 
 interface MainLayoutProps {
@@ -8,6 +11,18 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const router = useRouter();
+  const token = useSelector((state: RootState) => state.auth.token);
+
+  useEffect(() => {
+    if (!token) {
+      router.push("/");
+    }
+  }, [token, router]);
+
+  // Prevent rendering until token check is done to avoid flickering
+  if (!token) return null;
+
   return (
     <div className="flex flex-col h-screen">
       <TopNav />
