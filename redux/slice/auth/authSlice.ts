@@ -14,10 +14,10 @@ interface Auth {
 interface AuthState {
     auth: Auth[];
     token: string | null;
-    signInStatus: "idle" | "isLoading" | "succeeded" | "failed";
-    signUpStatus: "idle" | "isLoading" | "succeeded" | "failed";
-    verifyOtpStatus: "idle" | "isLoading" | "succeeded" | "failed";
-    resendOtpStatus: "idle" | "isLoading" | "succeeded" | "failed";
+    signInStatus: "idle" | "isLoading" | "succeded" | "failed";
+    signUpStatus: "idle" | "isLoading" | "succeded" | "failed";
+    verifyOtpStatus: "idle" | "isLoading" | "succeded" | "failed";
+    resendOtpStatus: "idle" | "isLoading" | "succeded" | "failed";
     error: string | null;
 }
 
@@ -42,7 +42,7 @@ const authSlice = createSlice({
                 state.signInStatus = "isLoading";
             })
             .addCase(signIn.fulfilled, (state, action) => {
-                state.signInStatus = "succeeded"; 
+                state.signInStatus = "succeded"; 
                 state.token = action.payload.token.access_token;
                 state.auth.push(action.payload);
                 localStorage.setItem("token", action.payload.token.access_token);
@@ -57,7 +57,7 @@ const authSlice = createSlice({
                 state.signUpStatus = "isLoading";
             })
             .addCase(signUp.fulfilled, (state, action) => {
-                state.signUpStatus = "succeeded"; // Fix missing status update
+                state.signUpStatus = "succeded"; // Fix missing status update
                 state.auth.push(action.payload);
             })
             .addCase(signUp.rejected, (state, action) => {
@@ -70,7 +70,7 @@ const authSlice = createSlice({
                 state.verifyOtpStatus = "isLoading";
             })
             .addCase(verifyOtp.fulfilled, (state, action) => {
-                state.verifyOtpStatus = "succeeded"; // Fix missing status update
+                state.verifyOtpStatus = "succeded"; // Fix missing status update
                 state.auth.push(action.payload);
             })
             .addCase(verifyOtp.rejected, (state, action) => {
@@ -83,7 +83,7 @@ const authSlice = createSlice({
                 state.resendOtpStatus = "isLoading";
             })
             .addCase(resendOtp.fulfilled, (state) => {
-                state.resendOtpStatus = "succeeded"; // No need to push to auth
+                state.resendOtpStatus = "succeded"; // No need to push to auth
             })
             .addCase(resendOtp.rejected, (state, action) => {
                 state.resendOtpStatus = "failed";
