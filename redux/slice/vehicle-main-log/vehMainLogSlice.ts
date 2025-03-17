@@ -70,13 +70,19 @@ const vehMainLogSlice = createSlice({
             })
             .addCase(updateVehicleMainLog.fulfilled, (state, action) => {
                 state.updateVehicleMainLogStatus = "succeeded";
+            
+                // Update all logs correctly
                 state.allVehicleMainLogs = state.allVehicleMainLogs.map((log) =>
-                    log.id === action.payload.id ? action.payload : log
+                    log.id === action.payload.id ? { ...log, ...action.payload } : log
                 );
+            
+                // Ensure selected vehicle log is updated
                 if (state.vehicleMainLog?.id === action.payload.id) {
-                    state.vehicleMainLog = action.payload; // Update single log if viewed
+                    state.vehicleMainLog = { ...state.vehicleMainLog, ...action.payload };
                 }
             })
+            
+            
             .addCase(updateVehicleMainLog.rejected, (state, action) => {
                 state.updateVehicleMainLogStatus = "failed";
                 state.error = action.error.message ?? "Failed to update log";

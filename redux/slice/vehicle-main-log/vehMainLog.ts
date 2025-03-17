@@ -80,7 +80,7 @@ export const deleteVehicleMainLog = createAsyncThunk(
     "vehicle-main-log/deleteVehicleMainLog", 
     async ({id}: {id: string}, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get( 
+            const response = await axiosInstance.delete( 
                 `/vehicle-maintenance-log/delete_vehicle_maintenance_log_form/${id}`
             );
             return response.data;

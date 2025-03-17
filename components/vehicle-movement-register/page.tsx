@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IoMdClose } from "react-icons/io";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -8,15 +8,17 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '@/redux/slice/loadingSlice';
 import { RootState } from '@/redux/store';
-import { createVehicleMoveReg } from '@/redux/slice/veh-movement-reg/vehMoveReg';
+import { createVehicleMoveReg, updateVehicleMoveReg } from '@/redux/slice/veh-movement-reg/vehMoveReg';
 import { useRouter } from 'next/navigation';
-
+import Link from 'next/link';
 
 interface VehicleMovementRegisterProps {
   handleClose: () => void;
+  vehicleData?: FormState | null; // If provided, we are updating
 }
 
 interface FormState {
+  id?: string;
   veh_number: string;
   month: string;
   week: string;
@@ -28,7 +30,7 @@ interface FormState {
   security_name: string;
 }
 
-const VehicleMovementRegister = ({ handleClose }: VehicleMovementRegisterProps) => {
+const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRegisterProps) => {
   const [selectedWeek, setSelectedWeek] = useState<Date | null>(null);
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -47,8 +49,17 @@ const VehicleMovementRegister = ({ handleClose }: VehicleMovementRegisterProps) 
     meter_end: 0,
     km: 0,
     security_name: "",
-  })
+  });
 
+  useEffect(() => {
+    if (vehicleData) {
+      setFormData(vehicleData);
+      setSelectedMonth(vehicleData.month ? new Date(vehicleData.month) : null);
+      setSelectedWeek(vehicleData.week ? new Date(vehicleData.week) : null);
+      setFromDate(vehicleData.date_from ? new Date(vehicleData.date_from) : null);
+      setToDate(vehicleData.date_to ? new Date(vehicleData.date_to) : null);
+    }
+  }, [vehicleData]);
 
   const getWeek = (date: Date): number => {
     const oneJan = new Date(date.getFullYear(), 0, 1);
@@ -58,20 +69,15 @@ const VehicleMovementRegister = ({ handleClose }: VehicleMovementRegisterProps) 
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-  
     setFormData((prevData) => ({
       ...prevData,
-      [name]: [ "meter_end", "km"].includes(name)
-        ? value === "" ? "" : Number(value) // Convert to number or keep empty
-        : value, // Keep other fields as strings
+      [name]: ["meter_end", "meter_start", "km"].includes(name) ? (value === "" ? "" : Number(value)) : value,
     }));
   };
-  
-  
 
   const handleDateChange = (date: Date | null, field: keyof FormState) => {
     if (date) {
-      const formattedDate = date.toISOString().split('en-CA')[0];
+      const formattedDate = date.toISOString().split('T')[0];
       setFormData((prevData) => ({
         ...prevData,
         [field]: formattedDate,
@@ -99,63 +105,80 @@ const VehicleMovementRegister = ({ handleClose }: VehicleMovementRegisterProps) 
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleCreateForm = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!validateForm()) return;
-
+  
     dispatch(startLoading());
     try {
-      const result = await dispatch(
-        createVehicleMoveReg({
-          ...formData,
-          month: selectedMonth ? `${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, '0')}` : "",
-          week: selectedWeek ? getWeek(selectedWeek).toString() : "",
-          date_from: fromDate ? fromDate.toISOString().split('T')[0] : "",
-          date_to: toDate ? toDate.toISOString().split('T')[0] : "",
-        }) as any
-      ).unwrap();
-
-      if (result) {
-        toast.success('Form created successfully!');
-        handleClose();
+      const formattedData = {
+        month: selectedMonth ? `${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, '0')}` : "",
+        week: selectedWeek ? getWeek(selectedWeek).toString() : "",
+        date_from: fromDate ? fromDate.toISOString().split('T')[0] : "",
+        date_to: toDate ? toDate.toISOString().split('T')[0] : "",
+        veh_number: formData.veh_number,
+        meter_start: String(formData.meter_start),  // ✅ Convert to string (API requires it)
+        meter_end: Number(formData.meter_end),      // ✅ Convert to number (API requires it)
+        km: Number(formData.km),                    // ✅ Convert to number (API requires it)
+        security_name: formData.security_name,
+      };
+      
+      
+  
+      let result;
+      if (vehicleData && vehicleData._id) {
+        // ✅ Corrected: Now checking `_id` instead of `id`
+        console.log("Updating record with ID:", vehicleData._id);
+        result = await dispatch(updateVehicleMoveReg({ id: vehicleData._id, data: formattedData }) as any).unwrap();
+      } else {
+        console.log("Creating new record");
+        result = await dispatch(createVehicleMoveReg(formattedData) as any).unwrap();
       }
-    } catch (error) {
-      toast.error("Failed to create form, try again!");
+  
+      if (result?.success) {
+        toast.success(vehicleData?._id ? "Form updated successfully!" : "Form created successfully!");
+        handleClose();
+        
+      } else {
+        throw new Error(result?.message || "Failed to submit form");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to submit form, try again!");
     } finally {
       dispatch(stopLoading());
     }
   };
+  
 
 
   return (
     <div className="w-full h-[80vh] flex flex-col">
       <div className="flex items-center justify-between">
-        <h2 className="font-bold lg:text-xl sm:text-lg capitalize">Vehicle register</h2>
-        <div onClick={handleClose}>
-          <IoMdClose size={30} className="text-red-500 cursor-pointer" />
-        </div>
+        <h2 className="font-bold lg:text-xl sm:text-lg capitalize">
+          {vehicleData ? "Edit Vehicle Register" : "Create Vehicle Register"}
+        </h2>
+        <IoMdClose size={30} className="text-red-500 cursor-pointer" onClick={handleClose} />
       </div>
 
-      {/* Separator */}
       <div className="pt-3 pb-2">
         <hr className="w-full border-none h-0.5 bg-gray-300" />
       </div>
 
-      {/* Scrollable Content */}
+      <Link href="/vehicle-movement-register-table" className='text-primary-2 font-bold text-right'>
+        View Table
+      </Link>
+
       <div className="w-full lg:p-3 sm:p-2 flex-1 overflow-y-auto custom-scroll">
-        <form 
-          className="w-full"
-          onSubmit={handleCreateForm}
-        >
-          
+        <form className="w-full" onSubmit={handleSubmit}>
+          {/* Vehicle Number Input */}
           <div className="mb-3 w-full">
-            <h2 className="text-sm font-bold uppercase text-primary-1 mb-2">vehicle number</h2>
-            <input 
+            <h2 className="text-sm font-bold uppercase text-primary-1 mb-2">Vehicle Number</h2>
+            <input
               type="text"
-              name='veh_number' 
-              placeholder="Enter car number"
-              onChange={handleChange}
+              name="veh_number"
+              placeholder="Enter vehicle number"
               value={formData.veh_number}
+              onChange={handleChange}
               className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2"
             />
             {errors.veh_number && <p className="text-red-500 text-sm">{errors.veh_number}</p>}
@@ -271,16 +294,14 @@ const VehicleMovementRegister = ({ handleClose }: VehicleMovementRegisterProps) 
             />
             {errors.security_name && <p className="text-red-500 text-sm">{errors.security_name}</p>}
           </div>
-          <button
-            type='submit'
-            className='rounded-lg bg-primary-1 w-full text-white hover:text-primary-1 hover:bg-transparent hover:border-2 hover:border-primary-1 outline-none py-3 cursor-pointer capitalize'
-          >
-            { isLoading ? "submitting" : "submit"}
+          {/* Submit Button */}
+          <button type="submit" className="rounded-lg bg-primary-2 text-white w-full p-2 mt-4">
+            {vehicleData ? "Update" : "Create"}
           </button>
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default VehicleMovementRegister;

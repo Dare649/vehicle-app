@@ -1,4 +1,4 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "@/util/axiosInstance";
 
 // Define vehicle movement register data type
@@ -13,7 +13,6 @@ interface VehicleMoveReg {
     km: number;
     security_name: string;
 }
-
 
 // Create form
 export const createVehicleMoveReg = createAsyncThunk(
@@ -33,8 +32,6 @@ export const createVehicleMoveReg = createAsyncThunk(
     }
 );
 
-
-
 // Update form
 export const updateVehicleMoveReg = createAsyncThunk(
     "vehicle-move-reg/updateVehicleMoveReg", 
@@ -53,34 +50,33 @@ export const updateVehicleMoveReg = createAsyncThunk(
     }
 );
 
-
-// get form
 export const getVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/getVehicleMoveReg", 
-    async ({id}: {id: string}, { rejectWithValue }) => {
-        try {
-            const response = await axiosInstance.get( 
-                `/vehicle-movement-register/get_vehicle_movement_register_form/${id}`
-            );
-            return response.data;
-        } catch (error: any) {
-            return rejectWithValue({
-                message: error.response?.data?.message || error.message || "Failed to get form, try again"
-            });
-        }
+    "vehMove/getVehicleMoveReg",
+    async (vehicleId: string, { rejectWithValue }) => {
+      try {
+        console.log("API Call with vehicleId:", vehicleId); // Debugging log
+        const response = await axiosInstance.get(`/vehicle-movement-register/get_vehicle_movement_register_form/${vehicleId}`);
+        return response.data;
+      } catch (error: any) {
+        console.error("API Request Error:", error.response?.data || error.message);
+        return rejectWithValue(error.response?.data || error.message);
+      }
     }
-);
+  );
+  
 
-
-// delete form
-export const deleteVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/deleteVehicleMoveReg", 
-    async ({id}: {id: string}, { rejectWithValue }) => {
+export const deleteVehicleMoveReg = createAsyncThunk<
+    string, // Return type (ID of deleted item)
+    string, // Argument type (ID to delete)
+    { rejectValue: { message: string } } // Error type
+>(
+    "vehicle-move-reg/deleteVehicleMoveReg",
+    async (id, { rejectWithValue }) => { 
         try {
-            const response = await axiosInstance.get( 
+            await axiosInstance.delete(
                 `/vehicle-movement-register/delete_vehicle_movement_register_form/${id}`
             );
-            return response.data;
+            return id; // Return the deleted ID
         } catch (error: any) {
             return rejectWithValue({
                 message: error.response?.data?.message || error.message || "Failed to delete form, try again"
@@ -90,13 +86,13 @@ export const deleteVehicleMoveReg = createAsyncThunk(
 );
 
 
-// get all form
+// Get all forms
 export const getAllVehicleMoveReg = createAsyncThunk(
     "vehicle-move-reg/getAllVehicleMoveReg", 
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get( 
-                `/vehicle-movement-register/get_all_vehicle_movement_register_form`
+                `/vehicle-movement-register/get_vehicle_movement_register_form`
             );
             return response.data;
         } catch (error: any) {

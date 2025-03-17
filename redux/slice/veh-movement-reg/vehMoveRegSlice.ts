@@ -38,7 +38,7 @@ const initialState: VehicleMoveRegState = {
     getAllVehicleMoveRegStatus: "idle",
     deleteVehicleMoveRegStatus: "idle",
     vehicleMoveReg: null,
-    allVehicleMoveRegs: [],
+    allVehicleMoveRegs: [], // ✅ Ensuring it's always an array
     error: null,
 };
 
@@ -46,32 +46,37 @@ const vehMoveRegSlice = createSlice({
     name: "vehMoveReg",
     initialState,
     reducers: {},
-    extraReducers(builder) {
+    extraReducers: (builder) => {
         builder
-            // Create Vehicle Log
+            // ✅ Create Vehicle Log
             .addCase(createVehicleMoveReg.pending, (state) => {
                 state.createVehicleMoveRegStatus = "isLoading";
             })
             .addCase(createVehicleMoveReg.fulfilled, (state, action) => {
                 state.createVehicleMoveRegStatus = "succeeded";
-                state.allVehicleMoveRegs.push(action.payload); // Add new log to the list
+                state.allVehicleMoveRegs = Array.isArray(state.allVehicleMoveRegs)
+                    ? [...state.allVehicleMoveRegs, action.payload]
+                    : [action.payload]; // ✅ Ensure it's always an array
             })
             .addCase(createVehicleMoveReg.rejected, (state, action) => {
                 state.createVehicleMoveRegStatus = "failed";
                 state.error = action.error.message ?? "Failed to create log";
             })
 
-            // Update Vehicle Log (by ID)
+            // ✅ Update Vehicle Log
             .addCase(updateVehicleMoveReg.pending, (state) => {
                 state.updateVehicleMoveRegStatus = "isLoading";
             })
             .addCase(updateVehicleMoveReg.fulfilled, (state, action) => {
                 state.updateVehicleMoveRegStatus = "succeeded";
-                state.allVehicleMoveRegs = state.allVehicleMoveRegs.map((log) =>
-                    log.id === action.payload.id ? action.payload : log
-                );
+                state.allVehicleMoveRegs = Array.isArray(state.allVehicleMoveRegs)
+                    ? state.allVehicleMoveRegs.map((log) =>
+                          log.id === action.payload.id ? action.payload : log
+                      )
+                    : [action.payload]; // ✅ Ensure it's always an array
+
                 if (state.vehicleMoveReg?.id === action.payload.id) {
-                    state.vehicleMoveReg = action.payload; // Update single log if viewed
+                    state.vehicleMoveReg = action.payload;
                 }
             })
             .addCase(updateVehicleMoveReg.rejected, (state, action) => {
@@ -79,43 +84,44 @@ const vehMoveRegSlice = createSlice({
                 state.error = action.error.message ?? "Failed to update log";
             })
 
-            // Get Single Vehicle Log (by ID)
+            // ✅ Get Single Vehicle Log
             .addCase(getVehicleMoveReg.pending, (state) => {
                 state.getVehicleMoveRegStatus = "isLoading";
             })
             .addCase(getVehicleMoveReg.fulfilled, (state, action) => {
                 state.getVehicleMoveRegStatus = "succeeded";
-                state.vehicleMoveReg = action.payload; // Store fetched log
+                state.vehicleMoveReg = action.payload;
             })
             .addCase(getVehicleMoveReg.rejected, (state, action) => {
                 state.getVehicleMoveRegStatus = "failed";
                 state.error = action.error.message ?? "Failed to get log";
             })
 
-            // Get All Vehicle Logs
+            // ✅ Get All Vehicle Logs
             .addCase(getAllVehicleMoveReg.pending, (state) => {
                 state.getAllVehicleMoveRegStatus = "isLoading";
             })
             .addCase(getAllVehicleMoveReg.fulfilled, (state, action) => {
                 state.getAllVehicleMoveRegStatus = "succeeded";
-                state.allVehicleMoveRegs = action.payload; // Store all logs
+                state.allVehicleMoveRegs = action.payload;
             })
             .addCase(getAllVehicleMoveReg.rejected, (state, action) => {
                 state.getAllVehicleMoveRegStatus = "failed";
                 state.error = action.error.message ?? "Failed to get all logs";
             })
 
-            // Delete Vehicle Log (by ID)
+            // ✅ Delete Vehicle Log
             .addCase(deleteVehicleMoveReg.pending, (state) => {
                 state.deleteVehicleMoveRegStatus = "isLoading";
             })
             .addCase(deleteVehicleMoveReg.fulfilled, (state, action) => {
                 state.deleteVehicleMoveRegStatus = "succeeded";
-                state.allVehicleMoveRegs = state.allVehicleMoveRegs.filter(
-                    (log) => log.id !== action.payload
-                );
+                state.allVehicleMoveRegs = Array.isArray(state.allVehicleMoveRegs)
+                    ? state.allVehicleMoveRegs.filter((log) => log.id !== action.payload)
+                    : []; // ✅ Ensure it's always an array
+
                 if (state.vehicleMoveReg?.id === action.payload) {
-                    state.vehicleMoveReg = null; // Clear if deleted log is currently viewed
+                    state.vehicleMoveReg = null; // ✅ Remove if currently selected
                 }
             })
             .addCase(deleteVehicleMoveReg.rejected, (state, action) => {
