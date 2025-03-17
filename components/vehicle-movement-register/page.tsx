@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '@/redux/slice/loadingSlice';
 import { RootState } from '@/redux/store';
-import { createVehicleMoveReg, updateVehicleMoveReg } from '@/redux/slice/veh-movement-reg/vehMoveReg';
+import { createVehicleMoveReg, updateVehicleMoveReg, getVehicleMoveReg } from '@/redux/slice/veh-movement-reg/vehMoveReg';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -52,14 +52,61 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
   });
 
   useEffect(() => {
+    console.log("Initial vehicleData:", vehicleData); // Debugging step
     if (vehicleData) {
-      setFormData(vehicleData);
+      setFormData({
+        ...vehicleData,
+        date_from: vehicleData.date_from || "",
+        date_to: vehicleData.date_to || "",
+      });
+  
       setSelectedMonth(vehicleData.month ? new Date(vehicleData.month) : null);
       setSelectedWeek(vehicleData.week ? new Date(vehicleData.week) : null);
       setFromDate(vehicleData.date_from ? new Date(vehicleData.date_from) : null);
       setToDate(vehicleData.date_to ? new Date(vehicleData.date_to) : null);
     }
   }, [vehicleData]);
+  
+  useEffect(() => {
+    const fetchVehicleData = async () => {
+      if (vehicleData?.id) {
+        dispatch(startLoading());
+        try {
+          console.log("Fetching data for ID:", vehicleData.id); // Debugging step
+          const response = await dispatch(getVehicleMoveReg(vehicleData.id) as any).unwrap();
+          
+          console.log("API Response:", response); // Debugging step
+          
+          if (response?.success) {
+            const fetchedData = response.data;
+            console.log("Fetched Data:", fetchedData); // Debugging step
+  
+            setFormData({
+              ...fetchedData,
+              date_from: fetchedData.date_from || "",
+              date_to: fetchedData.date_to || "",
+            });
+  
+            setSelectedMonth(fetchedData.month ? new Date(fetchedData.month) : null);
+            setSelectedWeek(fetchedData.week ? new Date(fetchedData.week) : null);
+            setFromDate(fetchedData.date_from ? new Date(fetchedData.date_from) : null);
+            setToDate(fetchedData.date_to ? new Date(fetchedData.date_to) : null);
+          } else {
+            toast.error("Failed to load vehicle data.");
+          }
+        } catch (error: any) {
+          console.error("Error fetching vehicle data:", error); // Debugging step
+          toast.error(error.message || "Error fetching vehicle data.");
+        } finally {
+          dispatch(stopLoading());
+        }
+      }
+    };
+  
+    fetchVehicleData();
+  }, [vehicleData?.id, dispatch]);
+  
+  
 
   const getWeek = (date: Date): number => {
     const oneJan = new Date(date.getFullYear(), 0, 1);
@@ -71,7 +118,7 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
     const { name, value } = event.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: ["meter_end", "meter_start", "km"].includes(name) ? (value === "" ? "" : Number(value)) : value,
+      [name]: ["meter_start","meter_end", "km"].includes(name) ? (value === "" ? "" : Number(value)) : value,
     }));
   };
 
@@ -108,7 +155,7 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!validateForm()) return;
-  
+
     dispatch(startLoading());
     try {
       const formattedData = {
@@ -117,28 +164,25 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
         date_from: fromDate ? fromDate.toISOString().split('T')[0] : "",
         date_to: toDate ? toDate.toISOString().split('T')[0] : "",
         veh_number: formData.veh_number,
-        meter_start: String(formData.meter_start),  // ✅ Convert to string (API requires it)
-        meter_end: Number(formData.meter_end),      // ✅ Convert to number (API requires it)
-        km: Number(formData.km),                    // ✅ Convert to number (API requires it)
+        meter_start: formData.meter_start,  // ✅ Fixed type issue
+        meter_end: formData.meter_end,      // ✅ Fixed type issue
+        km: formData.km,                    // ✅ Fixed type issue
         security_name: formData.security_name,
       };
-      
-      
-  
+
       let result;
-      if (vehicleData && vehicleData._id) {
-        // ✅ Corrected: Now checking `_id` instead of `id`
-        console.log("Updating record with ID:", vehicleData._id);
-        result = await dispatch(updateVehicleMoveReg({ id: vehicleData._id, data: formattedData }) as any).unwrap();
+      if (vehicleData && vehicleData.id) {
+        // ✅ Corrected: Now checking `id` instead of `id`
+        console.log("Updating record with ID:", vehicleData.id);
+        result = await dispatch(updateVehicleMoveReg({ id: vehicleData.id, data: formattedData }) as any).unwrap();
       } else {
         console.log("Creating new record");
         result = await dispatch(createVehicleMoveReg(formattedData) as any).unwrap();
       }
-  
+
       if (result?.success) {
-        toast.success(vehicleData?._id ? "Form updated successfully!" : "Form created successfully!");
+        toast.success(vehicleData?.id ? "Form updated successfully!" : "Form created successfully!");
         handleClose();
-        
       } else {
         throw new Error(result?.message || "Failed to submit form");
       }
@@ -148,7 +192,6 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
       dispatch(stopLoading());
     }
   };
-  
 
 
   return (

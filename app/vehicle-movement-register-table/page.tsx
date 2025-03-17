@@ -7,7 +7,11 @@ import VehicleMovementRegister from "@/components/vehicle-movement-register/page
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/redux/store";
-import { getAllVehicleMoveReg, getVehicleMoveReg, deleteVehicleMoveReg } from "@/redux/slice/veh-movement-reg/vehMoveReg";
+import {
+  getAllVehicleMoveReg,
+  getVehicleMoveReg,
+  deleteVehicleMoveReg,
+} from "@/redux/slice/veh-movement-reg/vehMoveReg";
 import { startLoading, stopLoading } from "@/redux/slice/loadingSlice";
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
@@ -18,11 +22,11 @@ const VehicleMovementRegisterTable = () => {
   const [selectedRow, setSelectedRow] = useState<any>(null);
 
   const isLoading = useSelector((state: RootState) => state.loading.isLoading);
-  const allVehicleMoveRegs = useSelector(
-    (state: RootState) => state.vehMove?.allVehicleMoveRegs?.data || []
+  const allVehicleMoveRegs = useSelector((state: RootState) =>
+    Array.isArray(state.vehMove?.allVehicleMoveRegs) ? state.vehMove.allVehicleMoveRegs : []
   );
 
-  console.log("Vehicle Move Data:", allVehicleMoveRegs); // Debugging Log
+  console.log("Vehicle Move Data:", allVehicleMoveRegs); // Debugging log
 
   const formatDateTime = (isoString: string | null | undefined): string => {
     if (!isoString) return "N/A";
@@ -56,37 +60,34 @@ const VehicleMovementRegisterTable = () => {
   }, [dispatch]);
 
   const handleUpdate = async (row: any) => {
-    console.log("Row Data:", row); // Debugging log
-    
-    if (!row || !row._id) {
+    if (!row || !row?.id) {
       toast.error("Invalid vehicle record ID");
       return;
     }
-  
-    const vehicleId = row._id;
-    console.log("Extracted _id:", vehicleId); // Debugging log
-  
+
     try {
       dispatch(startLoading());
-      const response = await dispatch(getVehicleMoveReg(vehicleId)).unwrap();
-      console.log("Fetched Data:", response); // Debugging log
-  
-      if (response?.data) {
-        setSelectedRow(response.data);
+      const response = await dispatch(getVehicleMoveReg(row?.id)).unwrap();
+
+      if (response) {
+        setSelectedRow(response);
         setOpen(true);
       } else {
         toast.error("No data found for the selected record.");
       }
     } catch (error: any) {
-      console.error("API Call Error:", error); // Debugging log
+      console.error("API Call Error:", error);
       toast.error(error.message || "Failed to fetch record");
     } finally {
       dispatch(stopLoading());
     }
   };
 
-  const handleDelete = async (_id: string) => {
-    if (!_id) {
+  const handleDelete = async (row: any) => {
+    console.log("Row Data:", row); // Debugging log
+    console.log("Row _id:", row?.id); // Debugging log
+
+    if (!row?.id) {
       toast.error("Invalid ID");
       return;
     }
@@ -98,11 +99,11 @@ const VehicleMovementRegisterTable = () => {
           <button
             className="bg-red-500 text-white px-3 py-1 rounded"
             onClick={async () => {
-              toast.dismiss(`delete-${_id}`);
+              toast.dismiss(`delete-${row?.id}`);
               dispatch(startLoading());
               try {
-                const response = await dispatch(deleteVehicleMoveReg(_id)).unwrap();
-                toast.success(response.message || "Record deleted successfully");
+                await dispatch(deleteVehicleMoveReg(row.id)).unwrap();
+                toast.success("Record deleted successfully");
 
                 // ✅ Refetch all records after delete
                 await dispatch(getAllVehicleMoveReg());
@@ -117,20 +118,13 @@ const VehicleMovementRegisterTable = () => {
           </button>
           <button
             className="bg-gray-300 px-3 py-1 rounded"
-            onClick={() => toast.dismiss(`delete-${_id}`)}
+            onClick={() => toast.dismiss(`delete-${row?.id}`)}
           >
             No
           </button>
         </div>
       </div>,
-      {
-        position: "top-center",
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
-        hideProgressBar: true,
-        toastId: `delete-${_id}`,
-      }
+      { toastId: `delete-${row?.id}` }
     );
   };
 
@@ -162,24 +156,30 @@ const VehicleMovementRegisterTable = () => {
       },
       {
         label: "Delete",
-        onClick: (row: any) => handleDelete(row._id),
+        onClick: (row: any) => handleDelete(row),
         className: "text-red-500 cursor-pointer",
       },
     ],
     []
   );
 
-  const formattedData = useMemo(
-    () =>
-      allVehicleMoveRegs.map((row: any) => ({
-        ...row,
-        createdAt: formatDateTime(row.createdAt),
-      })),
-    [allVehicleMoveRegs]
-  );
+  const formattedData = useMemo(() => {
+    if (!Array.isArray(allVehicleMoveRegs)) return []; // ✅ Ensure it's an array
+    return allVehicleMoveRegs.map((item) => ({
+      id: item._id, // Use `_id` since your API response contains `_id`
+      createdAt: formatDateTime(item.createdAt),
+      veh_number: item.veh_number,
+      date_from: item.date_from,
+      date_to: item.date_to,
+      meter_start: item.meter_start,
+      meter_end: item.meter_end,
+      km: item.km,
+      security_name: item.security_name,
+    }));
+  }, [allVehicleMoveRegs]);
 
   return (
-    <div className="w-full">
+    <div className="w-full lg:px-32 sm:px-0">
       <div className="w-full flex items-center justify-between lg:flex-row sm:flex-col gap-y-5">
         <h2 className="text-primary-2 lg:text-xl sm:text-base">Vehicle Movement Register</h2>
         <Link href={"/form"} className="text-primary-1 font-bold gap-x-1 flex items-center">
@@ -187,7 +187,7 @@ const VehicleMovementRegisterTable = () => {
           <span>Back</span>
         </Link>
       </div>
-      <div>
+      <div >
         <CheckTable columns={columns} data={formattedData} actions={actions} itemsPerPage={10} />
       </div>
       {open && (

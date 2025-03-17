@@ -104,7 +104,7 @@ const CheckTable: React.FC<CheckTableProps> = ({
   };
 
   return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+    <div className="shadow-md sm:rounded-lg relative min-h-screen flex flex-col">
       {/* Search Bar */}
       <div className="flex lg:flex-row sm:flex-col items-center justify-between lg:p-5 sm:p-2">
         <div className="w-[30%]">
@@ -120,6 +120,7 @@ const CheckTable: React.FC<CheckTableProps> = ({
       </div>
 
       {/* Table */}
+      <div className="flex-1 overflow-auto">
       <table className="w-full text-sm text-left mt-5">
         <thead className="capitalize border-b-2 border-primary-2">
           <tr >
@@ -151,16 +152,16 @@ const CheckTable: React.FC<CheckTableProps> = ({
           ) : (
             currentData.map((item) => (
               <tr
-                key={item._id}
-                className={`bg-white capitalize ${
+                key={item.id}
+                className={`bg-white capitalize border-b-2 border-gray-500 ${
                   selectedRows.includes(item.id) ? "bg-gray-100" : ""
                 }`}
               >
                 <td className="px-4 py-4">
                   <input
                     type="checkbox"
-                    checked={selectedRows.includes(item._id)}
-                    onChange={() => handleRowCheck(item._id)}
+                    checked={selectedRows.includes(item.id)}
+                    onChange={() => handleRowCheck(item.id)}
                   />
                 </td>
                 {columns.map((col) => (
@@ -171,12 +172,12 @@ const CheckTable: React.FC<CheckTableProps> = ({
                 {actions && (
                   <td className="relative px-6 py-4">
                     <button
-                      onClick={() => toggleMenu(item._id)}
+                      onClick={() => toggleMenu(item.id)}
                       className="text-gray-500 cursor-pointer hover:text-gray-700"
                     >
                       <BsThreeDots size={20} />
                     </button>
-                    {activeMenu === item._id && (
+                    {activeMenu === item.id && (
                       <div className="absolute z-10 bg-white border border-gray-200 rounded-lg shadow-md top-10 right-0 w-40">
                         {actions.map((action, idx) => (
                           <button
@@ -199,8 +200,9 @@ const CheckTable: React.FC<CheckTableProps> = ({
           )}
         </tbody>
       </table>
+      </div>
 
-      <div className="paginate flex items-center justify-end p-3 text-gray-400 gap-x-4">
+          <div className="sticky bottom-0 bg-white shadow-md p-3 flex justify-end items-center text-gray-400 gap-x-4">
         {/* Items Range Display */}
         <span className="text-lg ">
           {filteredData.length === 0

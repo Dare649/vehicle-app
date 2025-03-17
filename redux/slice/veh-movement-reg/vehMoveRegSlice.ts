@@ -8,6 +8,8 @@ import {
 } from "./vehMoveReg";
 
 interface VehicleMoveRegData {
+    createdAt?: string;
+    _id?: string;
     id: string;
     veh_number: string;
     month: string;
@@ -71,14 +73,15 @@ const vehMoveRegSlice = createSlice({
                 state.updateVehicleMoveRegStatus = "succeeded";
                 state.allVehicleMoveRegs = Array.isArray(state.allVehicleMoveRegs)
                     ? state.allVehicleMoveRegs.map((log) =>
-                          log.id === action.payload.id ? action.payload : log
+                          log._id === action.payload._id ? action.payload : log
                       )
-                    : [action.payload]; // ✅ Ensure it's always an array
-
-                if (state.vehicleMoveReg?.id === action.payload.id) {
+                    : [action.payload];
+            
+                if (state.vehicleMoveReg?._id === action.payload._id) {
                     state.vehicleMoveReg = action.payload;
                 }
             })
+            
             .addCase(updateVehicleMoveReg.rejected, (state, action) => {
                 state.updateVehicleMoveRegStatus = "failed";
                 state.error = action.error.message ?? "Failed to update log";
@@ -103,8 +106,8 @@ const vehMoveRegSlice = createSlice({
             })
             .addCase(getAllVehicleMoveReg.fulfilled, (state, action) => {
                 state.getAllVehicleMoveRegStatus = "succeeded";
-                state.allVehicleMoveRegs = action.payload;
-            })
+                state.allVehicleMoveRegs = Array.isArray(action.payload) ? action.payload : []; // ✅ Ensure it's an array
+            })            
             .addCase(getAllVehicleMoveReg.rejected, (state, action) => {
                 state.getAllVehicleMoveRegStatus = "failed";
                 state.error = action.error.message ?? "Failed to get all logs";
@@ -117,13 +120,14 @@ const vehMoveRegSlice = createSlice({
             .addCase(deleteVehicleMoveReg.fulfilled, (state, action) => {
                 state.deleteVehicleMoveRegStatus = "succeeded";
                 state.allVehicleMoveRegs = Array.isArray(state.allVehicleMoveRegs)
-                    ? state.allVehicleMoveRegs.filter((log) => log.id !== action.payload)
-                    : []; // ✅ Ensure it's always an array
-
-                if (state.vehicleMoveReg?.id === action.payload) {
+                    ? state.allVehicleMoveRegs.filter((log) => log._id !== action.payload)
+                    : [];
+            
+                if (state.vehicleMoveReg?._id === action.payload) {
                     state.vehicleMoveReg = null; // ✅ Remove if currently selected
                 }
             })
+            
             .addCase(deleteVehicleMoveReg.rejected, (state, action) => {
                 state.deleteVehicleMoveRegStatus = "failed";
                 state.error = action.error.message ?? "Failed to delete log";
