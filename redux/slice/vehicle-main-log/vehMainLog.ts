@@ -10,7 +10,7 @@ interface VehicleMainLogData {
     engine: string;
     date_of_service: string;
     milage_of_service: number;
-    performed_by: string;
+    performed_by_name: string;
     work_performed_by_service_schedule: string;
     cost: number;
     invoice: string;
@@ -60,30 +60,32 @@ export const updateVehicleMainLog = createAsyncThunk(
 // get form
 export const getVehicleMainLog = createAsyncThunk(
     "vehicle-main-log/getVehicleMainLog", 
-    async ({id}: {id: string}, { rejectWithValue }) => {
+    async (vehicleId: string, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get( 
-                `/vehicle-maintenance-log/get_vehicle_maintenance_log_form/${id}`
+                `/vehicle-maintenance-log/get_vehicle_maintenance_log_form/${vehicleId}`
             );
-            return response.data;
+            return response.data.data;
         } catch (error: any) {
-            return rejectWithValue({
-                message: error.response?.data?.message || error.message || "Failed to get form, try again"
-            });
+            return rejectWithValue( error.response?.data || error.message || "Failed to get form, try again");
         }
     }
 );
 
 
 // delete form
-export const deleteVehicleMainLog = createAsyncThunk(
-    "vehicle-main-log/deleteVehicleMainLog", 
-    async ({id}: {id: string}, { rejectWithValue }) => {
+export const deleteVehicleMainLog = createAsyncThunk<
+    string, // Return type (ID of deleted item)
+    string, // Argument type (ID to delete)
+    { rejectValue: { message: string } } // Error type
+>(
+    "vehicle-move-reg/deleteVehicleMoveReg",
+    async (id, { rejectWithValue }) => { 
         try {
-            const response = await axiosInstance.delete( 
+            await axiosInstance.delete(
                 `/vehicle-maintenance-log/delete_vehicle_maintenance_log_form/${id}`
             );
-            return response.data;
+            return id; // Return the deleted ID
         } catch (error: any) {
             return rejectWithValue({
                 message: error.response?.data?.message || error.message || "Failed to delete form, try again"
@@ -99,9 +101,9 @@ export const getAllVehicleMainLog = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get( 
-                `/vehicle-maintenance-log/get_all_vehicle_maintenance_log_form`
+                `/vehicle-maintenance-log/get_vehicle_maintenance_log_form`
             );
-            return response.data;
+            return response.data.data;
         } catch (error: any) {
             return rejectWithValue({
                 message: error.response?.data?.message || error.message || "Failed to get forms, try again"

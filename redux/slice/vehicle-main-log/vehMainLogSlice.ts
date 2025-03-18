@@ -8,6 +8,8 @@ import {
 } from "./vehMainLog";
 
 interface VehicleMainLogData {
+    createdAt?: string;
+    _id?: string;
     id: string;
     make: string;
     model: string;
@@ -16,7 +18,7 @@ interface VehicleMainLogData {
     engine: string;
     date_of_service: string;
     milage_of_service: number;
-    performed_by: string;
+    performed_by_name: string;
     work_performed_by_service_schedule: string;
     cost: number;
     invoice: string;
@@ -57,8 +59,11 @@ const vehMainLogSlice = createSlice({
             })
             .addCase(createVehicleMainLog.fulfilled, (state, action) => {
                 state.createVehicleMainLogStatus = "succeeded";
-                state.allVehicleMainLogs.push(action.payload); // Add new log to the list
+                state.allVehicleMainLogs = Array.isArray(state.allVehicleMainLogs)
+                    ? [...state.allVehicleMainLogs, action.payload]
+                    : [action.payload]; // ✅ Ensure it's always an array
             })
+            
             .addCase(createVehicleMainLog.rejected, (state, action) => {
                 state.createVehicleMainLogStatus = "failed";
                 state.error = action.error.message ?? "Failed to create log";
@@ -68,20 +73,19 @@ const vehMainLogSlice = createSlice({
             .addCase(updateVehicleMainLog.pending, (state) => {
                 state.updateVehicleMainLogStatus = "isLoading";
             })
+            
             .addCase(updateVehicleMainLog.fulfilled, (state, action) => {
                 state.updateVehicleMainLogStatus = "succeeded";
+                state.allVehicleMainLogs = Array.isArray(state.allVehicleMainLogs)
+                    ? state.allVehicleMainLogs.map((log) =>
+                            log._id === action.payload._id ? action.payload : log
+                        )
+                    : [action.payload];
             
-                // Update all logs correctly
-                state.allVehicleMainLogs = state.allVehicleMainLogs.map((log) =>
-                    log.id === action.payload.id ? { ...log, ...action.payload } : log
-                );
-            
-                // Ensure selected vehicle log is updated
-                if (state.vehicleMainLog?.id === action.payload.id) {
-                    state.vehicleMainLog = { ...state.vehicleMainLog, ...action.payload };
+                if (state.vehicleMainLog?._id === action.payload._id) {
+                    state.vehicleMainLog = action.payload;
                 }
             })
-            
             
             .addCase(updateVehicleMainLog.rejected, (state, action) => {
                 state.updateVehicleMainLogStatus = "failed";
@@ -107,7 +111,7 @@ const vehMainLogSlice = createSlice({
             })
             .addCase(getAllVehicleMainLog.fulfilled, (state, action) => {
                 state.getAllVehicleMainLogStatus = "succeeded";
-                state.allVehicleMainLogs = action.payload; // Store all logs
+                state.allVehicleMainLogs = Array.isArray(action.payload) ? action.payload : []; // ✅ Ensure it's an array
             })
             .addCase(getAllVehicleMainLog.rejected, (state, action) => {
                 state.getAllVehicleMainLogStatus = "failed";
@@ -120,11 +124,12 @@ const vehMainLogSlice = createSlice({
             })
             .addCase(deleteVehicleMainLog.fulfilled, (state, action) => {
                 state.deleteVehicleMainLogStatus = "succeeded";
-                state.allVehicleMainLogs = state.allVehicleMainLogs.filter(
-                    (log) => log.id !== action.payload
-                );
-                if (state.vehicleMainLog?.id === action.payload) {
-                    state.vehicleMainLog = null; // Clear if deleted log is currently viewed
+                state.allVehicleMainLogs = Array.isArray(state.allVehicleMainLogs)
+                    ? state.allVehicleMainLogs.filter((log) => log._id !== action.payload)
+                    : [];
+            
+                if (state.vehicleMainLog?._id === action.payload) {
+                    state.vehicleMainLog = null; // ✅ Remove if currently selected
                 }
             })
             .addCase(deleteVehicleMainLog.rejected, (state, action) => {

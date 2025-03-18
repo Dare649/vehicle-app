@@ -54,11 +54,9 @@ export const getVehicleMoveReg = createAsyncThunk(
     "vehMove/getVehicleMoveReg",
     async (vehicleId: string, { rejectWithValue }) => {
       try {
-        console.log("API Call with vehicleId:", vehicleId); // Debugging log
         const response = await axiosInstance.get(`/vehicle-movement-register/get_vehicle_movement_register_form/${vehicleId}`);
         return response.data.data;
       } catch (error: any) {
-        console.error("API Request Error:", error.response?.data || error.message);
         return rejectWithValue(error.response?.data || error.message);
       }
     }

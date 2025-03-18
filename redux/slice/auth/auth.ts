@@ -14,6 +14,20 @@ export const signIn = createAsyncThunk(
     }
 );
 
+
+// get signed in user
+export const getSignedInUser = createAsyncThunk(
+    "auth/getSignedInUser",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get("/auth/signed_in_user");
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data || "Failed to get signed in user, try again.");
+        }
+    }
+);
+
 // Sign Up
 export const signUp = createAsyncThunk(
     "auth/signUp",

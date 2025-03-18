@@ -14,7 +14,7 @@ import Link from 'next/link';
 
 interface VehicleMovementRegisterProps {
   handleClose: () => void;
-  vehicleData?: FormState | null; // If provided, we are updating
+  vehicleData?: FormState | null; 
 }
 
 interface FormState {
@@ -172,8 +172,7 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
 
       let result;
       if (vehicleData && vehicleData.id) {
-        // ✅ Corrected: Now checking `id` instead of `id`
-        console.log("Updating record with ID:", vehicleData.id);
+        
         result = await dispatch(updateVehicleMoveReg({ id: vehicleData.id, data: formattedData }) as any).unwrap();
       } else {
         console.log("Creating new record");
@@ -208,7 +207,7 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
       </div>
 
       <Link href="/vehicle-movement-register-table" className='text-primary-2 font-bold text-right'>
-        View Table
+        view table
       </Link>
 
       <div className="w-full lg:p-3 sm:p-2 flex-1 overflow-y-auto custom-scroll">

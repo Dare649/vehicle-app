@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { signIn, signUp, verifyOtp, resendOtp } from "./auth";
+import { signIn, signUp, verifyOtp, resendOtp, getSignedInUser } from "./auth";
 
 interface Auth {
     first_name: string;
@@ -18,6 +18,7 @@ interface AuthState {
     signUpStatus: "idle" | "isLoading" | "succeded" | "failed";
     verifyOtpStatus: "idle" | "isLoading" | "succeded" | "failed";
     resendOtpStatus: "idle" | "isLoading" | "succeded" | "failed";
+    getSignedInUserStatus: "idle" | "isLoading" | "succeded" | "failed";
     error: string | null;
 }
 
@@ -28,6 +29,7 @@ const initialState: AuthState = {
     signUpStatus: "idle",
     verifyOtpStatus: "idle",
     resendOtpStatus: "idle",
+    getSignedInUserStatus: "idle",
     error: null,
 };
 
@@ -51,6 +53,21 @@ const authSlice = createSlice({
                 state.signInStatus = "failed";
                 state.error = action.error.message ?? "Failed to sign in, try again.";
             })
+
+
+            // ✅ Get signed in user
+            .addCase(getSignedInUser.pending, (state) => {
+                state.getSignedInUserStatus = "isLoading";
+            })
+            .addCase(getSignedInUser.fulfilled, (state, action) => {
+                state.getSignedInUserStatus = "succeded";
+                state.auth.push(action.payload)
+            })            
+            .addCase(getSignedInUser.rejected, (state, action) => {
+                state.getSignedInUserStatus = "failed";
+                state.error = action.error.message ?? "Failed to get all logs";
+            })
+            
 
             // Handle sign up
             .addCase(signUp.pending, (state) => {

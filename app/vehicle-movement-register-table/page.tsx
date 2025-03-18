@@ -26,8 +26,7 @@ const VehicleMovementRegisterTable = () => {
     Array.isArray(state.vehMove?.allVehicleMoveRegs) ? state.vehMove.allVehicleMoveRegs : []
   );
 
-  console.log("Vehicle Move Data:", allVehicleMoveRegs); // Debugging log
-
+  
   const formatDateTime = (isoString: string | null | undefined): string => {
     if (!isoString) return "N/A";
     const date = new Date(isoString);
