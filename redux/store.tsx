@@ -6,6 +6,9 @@ import loadingReducer from '@/redux/slice/loadingSlice';
 import vehMainLogReducer from '@/redux/slice/vehicle-main-log/vehMainLogSlice';
 import vehMainReqReducer from '@/redux/slice/vehicle-main-req-form/vehMainReqSlice';
 import vehMoveRegReducer from '@/redux/slice/veh-movement-reg/vehMoveRegSlice';
+import employeeActivityReportReducer from "@/redux/slice/employee-activities-report/empActivityReportSlice";
+import monthlyVehMainChecklistReducer from "@/redux/slice/monthly-vehicle-maintenance-checklist/monthlyVehMainChecklistSlice";
+import dailyInspectionReportReducer from "@/redux/slice/daily-inspection-report/dailyInspectionReportSlice";
 
 const persistConfig = {
     key: 'root',
@@ -16,6 +19,9 @@ const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 const persistedVehMainLogReducer = persistReducer(persistConfig, vehMainLogReducer);
 const persistedVehMainReqReducer = persistReducer(persistConfig, vehMainReqReducer);
 const persistedVehMoveRegReducer = persistReducer(persistConfig, vehMoveRegReducer);
+const persistedEmployeeActivityReportReducer = persistReducer(persistConfig, employeeActivityReportReducer);
+const persistedMonthlyVehMainChecklistReducer = persistReducer(persistConfig, monthlyVehMainChecklistReducer);
+const persistedDailyInspectionReportReducer = persistReducer(persistConfig, dailyInspectionReportReducer);
 
 export const store = configureStore({
     reducer: {
@@ -24,6 +30,9 @@ export const store = configureStore({
         vehMainLog: persistedVehMainLogReducer,
         vehMainReq: persistedVehMainReqReducer,
         vehMove: persistedVehMoveRegReducer,
+        employeeActivityReport: persistedEmployeeActivityReportReducer,
+        monthlyVehMainChecklist: persistedMonthlyVehMainChecklistReducer,
+        dailyInspectionReport: persistedDailyInspectionReportReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

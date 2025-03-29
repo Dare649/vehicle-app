@@ -7,29 +7,32 @@ import {
     deleteVehicleMainReq
 } from "./vehMainReq";
 
-interface VehicleMainLogData {
+interface VehicleMainReq {
     id: string;
+    createdAt: string;
+    _id: string;
     veh_number: string;
     filled_by: string;
     report_date: string;
     mechanic_notes: string;
+    performed_by_user: string;
     description_of_problem: string;
     completed_date: string;
     mechanic_name: string;
 }
 
-interface VehicleMainLogState {
+interface VehicleMainReqState {
     createVehicleMainReqStatus: "idle" | "isLoading" | "succeeded" | "failed";
     updateVehicleMainReqStatus: "idle" | "isLoading" | "succeeded" | "failed";
     getVehicleMainReqStatus: "idle" | "isLoading" | "succeeded" | "failed";
     getAllVehicleMainReqStatus: "idle" | "isLoading" | "succeeded" | "failed";
     deleteVehicleMainReqStatus: "idle" | "isLoading" | "succeeded" | "failed";
-    vehicleMainReq: VehicleMainLogData | null;
-    allVehicleMainReqs: VehicleMainLogData[];
+    vehicleMainReq: VehicleMainReq | null;
+    allVehicleMainReqs: VehicleMainReq[];
     error: string | null;
 }
 
-const initialState: VehicleMainLogState = {
+const initialState: VehicleMainReqState = {
     createVehicleMainReqStatus: "idle",
     updateVehicleMainReqStatus: "idle",
     getVehicleMainReqStatus: "idle",
@@ -52,7 +55,9 @@ const vehMainReqSlice = createSlice({
             })
             .addCase(createVehicleMainReq.fulfilled, (state, action) => {
                 state.createVehicleMainReqStatus = "succeeded";
-                state.allVehicleMainReqs.push(action.payload); // Add new log to the list
+                state.allVehicleMainReqs = Array.isArray(state.allVehicleMainReqs)
+                    ? [...state.allVehicleMainReqs, action.payload]
+                    : [action.payload]; // ✅ Ensure it's always an array
             })
             .addCase(createVehicleMainReq.rejected, (state, action) => {
                 state.createVehicleMainReqStatus = "failed";
@@ -65,11 +70,14 @@ const vehMainReqSlice = createSlice({
             })
             .addCase(updateVehicleMainReq.fulfilled, (state, action) => {
                 state.updateVehicleMainReqStatus = "succeeded";
-                state.allVehicleMainReqs = state.allVehicleMainReqs.map((log) =>
-                    log.id === action.payload.id ? action.payload : log
-                );
-                if (state.vehicleMainReq?.id === action.payload.id) {
-                    state.vehicleMainReq = action.payload; // Update single log if viewed
+                state.allVehicleMainReqs = Array.isArray(state.allVehicleMainReqs)
+                    ? state.allVehicleMainReqs.map((log) =>
+                          log._id === action.payload._id ? action.payload : log
+                      )
+                    : [action.payload];
+            
+                if (state.vehicleMainReq?._id === action.payload._id) {
+                    state.vehicleMainReq = action.payload;
                 }
             })
             .addCase(updateVehicleMainReq.rejected, (state, action) => {

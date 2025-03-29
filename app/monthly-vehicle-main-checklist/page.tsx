@@ -3,27 +3,27 @@
 import CheckTable from "@/components/table/page";
 import { useState, useEffect, useMemo } from "react";
 import Modal from "@/components/modal/page";
-import VehicleMovementRegister from "@/components/vehicle-movement-register/page";
+import MonthlyVehicleMaintenanceChecklist from "@/components/monthly-vehicle-maintenance-checklist/page";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/redux/store";
 import {
-  getAllVehicleMoveReg,
-  getVehicleMoveReg,
-  deleteVehicleMoveReg,
-} from "@/redux/slice/veh-movement-reg/vehMoveReg";
+  getAllMonthlyVehMainChecklist,
+  getMonthlyVehMainChecklist,
+  deleteMonthlyVehMainChecklist,
+} from "@/redux/slice/monthly-vehicle-maintenance-checklist/monthlyVehMainChecklist";
 import { startLoading, stopLoading } from "@/redux/slice/loadingSlice";
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
 
-const VehicleMovementRegisterTable = () => {
+const MonthlyVehicleMaintenanceChecklistTable = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [open, setOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<any>(null);
 
   const isLoading = useSelector((state: RootState) => state.loading.isLoading);
-  const allVehicleMoveRegs = useSelector((state: RootState) =>
-    Array.isArray(state.vehMove?.allVehicleMoveRegs) ? state.vehMove.allVehicleMoveRegs : []
+  const allMonthlyVehMainChecklist = useSelector((state: RootState) =>
+    Array.isArray(state.monthlyVehMainChecklist?.allMonthlyVehMainChecklist) ? state.monthlyVehMainChecklist.allMonthlyVehMainChecklist : []
   );
 
   
@@ -47,7 +47,7 @@ const VehicleMovementRegisterTable = () => {
     const fetchData = async () => {
       try {
         dispatch(startLoading());
-        await dispatch(getAllVehicleMoveReg()).unwrap();
+        await dispatch(getAllMonthlyVehMainChecklist()).unwrap();
       } catch (error: any) {
         toast.error(error.message || "Failed to fetch data");
       } finally {
@@ -66,7 +66,7 @@ const VehicleMovementRegisterTable = () => {
 
     try {
       dispatch(startLoading());
-      const response = await dispatch(getVehicleMoveReg(row?.id)).unwrap();
+      const response = await dispatch(getMonthlyVehMainChecklist(row?.id)).unwrap();
 
       if (response) {
         setSelectedRow(response);
@@ -75,7 +75,6 @@ const VehicleMovementRegisterTable = () => {
         toast.error("No data found for the selected record.");
       }
     } catch (error: any) {
-      console.error("API Call Error:", error);
       toast.error(error.message || "Failed to fetch record");
     } finally {
       dispatch(stopLoading());
@@ -83,8 +82,6 @@ const VehicleMovementRegisterTable = () => {
   };
 
   const handleDelete = async (row: any) => {
-    console.log("Row Data:", row); // Debugging log
-    console.log("Row _id:", row?.id); // Debugging log
 
     if (!row?.id) {
       toast.error("Invalid ID");
@@ -93,7 +90,7 @@ const VehicleMovementRegisterTable = () => {
 
     toast.info(
       <div className="flex flex-col items-center text-center">
-        <p className="mb-4">Are you sure you want to delete this record?</p>
+        <p className="mb-4">Are you sure you want to delete this report?</p>
         <div className="flex items-center gap-3">
           <button
             className="bg-red-500 text-white px-3 py-1 rounded"
@@ -101,13 +98,13 @@ const VehicleMovementRegisterTable = () => {
               toast.dismiss(`delete-${row?.id}`);
               dispatch(startLoading());
               try {
-                await dispatch(deleteVehicleMoveReg(row.id)).unwrap();
-                toast.success("Record deleted successfully");
+                await dispatch(deleteMonthlyVehMainChecklist(row.id)).unwrap();
+                toast.success("report deleted successfully");
 
                 // ✅ Refetch all records after delete
-                await dispatch(getAllVehicleMoveReg());
+                await dispatch(getAllMonthlyVehMainChecklist());
               } catch (error: any) {
-                toast.error(error.message || "Failed to delete record");
+                toast.error(error.message || "Failed to delete report");
               } finally {
                 dispatch(stopLoading());
               }
@@ -132,16 +129,16 @@ const VehicleMovementRegisterTable = () => {
     setSelectedRow(null);
 
     // ✅ Ensure table reloads after updating
-    dispatch(getAllVehicleMoveReg());
+    dispatch(getAllMonthlyVehMainChecklist());
   };
 
   const columns = useMemo(
     () => [
       { key: "createdAt", label: "Date", render: (value: any) => formatDateTime(value) },
-      { key: "veh_number", label: "Vehicle Number" },
-      { key: "meter_start", label: "Meter Start" },
-      { key: "meter_end", label: "Meter End" },
-      { key: "km", label: "Kilometer" },
+      { key: "veh_name", label: "Vehicle Name" },
+      { key: "date", label: "Date" },
+      { key: "checked_by", label: "Checked by" },
+      { key: "current_mileage", label: "Current mileage" },
     ],
     []
   );
@@ -163,24 +160,21 @@ const VehicleMovementRegisterTable = () => {
   );
 
   const formattedData = useMemo(() => {
-    if (!Array.isArray(allVehicleMoveRegs)) return []; // ✅ Ensure it's an array
-    return allVehicleMoveRegs.map((item) => ({
-      id: item._id,
-      createdAt: formatDateTime(item.createdAt),
-      veh_number: item.veh_number,
-      date_from: item.date_from,
-      date_to: item.date_to,
-      meter_start: item.meter_start,
-      meter_end: item.meter_end,
-      km: item.km,
-      security_name: item.security_name,
+    if (!Array.isArray(allMonthlyVehMainChecklist)) return [];
+    return allMonthlyVehMainChecklist.map((item) => ({
+      id: item._id, // Ensure this field is unique
+      createdAt: item.createdAt,
+      veh_name: item.veh_name,
+      date: item.date,
+      checked_by: item.checked_by,
+      current_mileage: item.current_mileage,
     }));
-  }, [allVehicleMoveRegs]);
-  
+  }, [allMonthlyVehMainChecklist]);
+
   return (
     <div className="w-full lg:px-32 sm:px-0">
       <div className="w-full flex items-center justify-between lg:flex-row sm:flex-col gap-y-5">
-        <h2 className="text-primary-2 lg:text-xl sm:text-base">Vehicle Movement Register</h2>
+        <h2 className="text-primary-2 lg:text-xl sm:text-base capitalize">monthly vehicle maintenance checklist</h2>
         <Link href={"/form"} className="text-primary-1 font-bold gap-x-1 flex items-center">
           <FaArrowLeft />
           <span>Back</span>
@@ -191,11 +185,11 @@ const VehicleMovementRegisterTable = () => {
       </div>
       {open && (
         <Modal visible={open} onClose={handleClose}>
-          <VehicleMovementRegister handleClose={handleClose} vehicleData={selectedRow} />
+          <MonthlyVehicleMaintenanceChecklist handleClose={handleClose} activityData={selectedRow} />
         </Modal>
       )}
     </div>
   );
 };
 
-export default VehicleMovementRegisterTable;
+export default MonthlyVehicleMaintenanceChecklistTable;

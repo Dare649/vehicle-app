@@ -8,9 +8,9 @@ import {
 } from "./vehMainLog";
 
 interface VehicleMainLogData {
+    id: string;
     createdAt?: string;
     _id?: string;
-    id: string;
     make: string;
     model: string;
     year: number;

@@ -1,27 +1,30 @@
-import { createAsyncThunk} from "@reduxjs/toolkit";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "@/util/axiosInstance";
 
-// Define vehicle movement register data type
-interface VehicleMoveReg {
-    veh_number: string;
-    month: string;
-    week: string;
-    date_from: string;
-    date_to: string;
-    meter_start: number;
-    meter_end: number;
-    km: number;
-    security_name: string;
-    performed_by_user: string;
-}
 
-// Create form
-export const createVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/createVehicleMoveReg",
-    async (data: VehicleMoveReg, { rejectWithValue }) => {
+interface InspectionItem {
+    item: string;
+    status: number;
+  }
+  
+  interface DailyInspectionReport {
+    date: string; 
+    driver_name: string; 
+    total_mileage: number; 
+    general_items: InspectionItem[]; 
+    driver_area_items: InspectionItem[]; 
+    front_rare_items: InspectionItem[]; 
+    performed_by_user: string;
+  }
+
+
+
+export const createDailyInspectionReport = createAsyncThunk(
+    "daily-inspection-report/createDailyInspectionReport",
+    async (data: DailyInspectionReport, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.post(
-                "/vehicle-movement-register/create_vehicle_movement_register_form",
+                "/daily-inspection/create_daily_inspection",
                 data
             );
             return response.data;
@@ -34,12 +37,12 @@ export const createVehicleMoveReg = createAsyncThunk(
 );
 
 // Update form
-export const updateVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/updateVehicleMoveReg", 
-    async ({ id, data }: { id: string; data: VehicleMoveReg }, { rejectWithValue }) => {
+export const updateDailyInspectionReport = createAsyncThunk(
+    "daily-inspection-report/updateDailyInspectionReport", 
+    async ({ id, data }: { id: string; data: DailyInspectionReport }, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.put( 
-                `/vehicle-movement-register/update_vehicle_movement_register_form/${id}`,
+                `/daily-inspection/update_daily_inspection/${id}`,
                 data
             );
             return response.data;
@@ -51,11 +54,11 @@ export const updateVehicleMoveReg = createAsyncThunk(
     }
 );
 
-export const getVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/getVehicleMoveReg",
+export const getDailyInspectionReport = createAsyncThunk(
+    "daily-inspection-report/getDailyInspectionReport",
     async (vehicleId: string, { rejectWithValue }) => {
       try {
-        const response = await axiosInstance.get(`/vehicle-movement-register/get_vehicle_movement_register_form/${vehicleId}`);
+        const response = await axiosInstance.get(`/daily-inspection/get_daily_inspection/${vehicleId}`);
         return response.data.data;
       } catch (error: any) {
         return rejectWithValue(error.response?.data || error.message);
@@ -64,16 +67,16 @@ export const getVehicleMoveReg = createAsyncThunk(
   );
   
 
-export const deleteVehicleMoveReg = createAsyncThunk<
+export const deleteDailyInspectionReport = createAsyncThunk<
     string, // Return type (ID of deleted item)
     string, // Argument type (ID to delete)
     { rejectValue: { message: string } } // Error type
 >(
-    "vehicle-move-reg/deleteVehicleMoveReg",
+    "daily-inspection-report/deleteDailyInspectionReport",
     async (id, { rejectWithValue }) => { 
         try {
             await axiosInstance.delete(
-                `/vehicle-movement-register/delete_vehicle_movement_register_form/${id}`
+                `/daily-inspection/delete_daily_inspection/${id}`
             );
             return id; // Return the deleted ID
         } catch (error: any) {
@@ -86,12 +89,12 @@ export const deleteVehicleMoveReg = createAsyncThunk<
 
 
 // Get all forms
-export const getAllVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/getAllVehicleMoveReg", 
+export const getAllDailyInspectionReport = createAsyncThunk(
+    "daily-inspection-report/getAllDailyInspectionReport", 
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get( 
-                `/vehicle-movement-register/get_vehicle_movement_register_form`
+                `/daily-inspection/get_daily_inspection`
             );
             return response.data.data; 
         } catch (error: any) {
@@ -101,3 +104,5 @@ export const getAllVehicleMoveReg = createAsyncThunk(
         }
     }
 );
+
+  

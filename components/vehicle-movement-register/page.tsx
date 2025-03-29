@@ -11,6 +11,7 @@ import { RootState } from '@/redux/store';
 import { createVehicleMoveReg, updateVehicleMoveReg, getVehicleMoveReg } from '@/redux/slice/veh-movement-reg/vehMoveReg';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getSignedInUser } from "@/redux/slice/auth/auth";
 
 interface VehicleMovementRegisterProps {
   handleClose: () => void;
@@ -19,7 +20,9 @@ interface VehicleMovementRegisterProps {
 
 interface FormState {
   id?: string;
+  _id?: string;
   veh_number: string;
+  performed_by_user: string;
   month: string;
   week: string;
   date_from: string;
@@ -39,6 +42,30 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
   const isLoading = useSelector((state: RootState) => state.loading.isLoading);
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const signedInUser = useSelector((state: RootState) => state.auth.user);
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        dispatch(startLoading());
+        const user = await dispatch(getSignedInUser()).unwrap();
+        if (user?._id) {
+          setFormData((prevData) => ({
+            ...prevData,
+            performed_by_user: user._id,
+          }));
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Failed to fetch signed-in user");
+      } finally {
+        dispatch(stopLoading());
+      }
+    };
+  
+    fetchUser();
+  }, [dispatch]);
+  
+
   const [formData, setFormData] = useState<FormState>({
     veh_number: "",
     month: "",
@@ -46,13 +73,14 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
     date_from: "",
     date_to: "",
     meter_start: 0,
+    performed_by_user: signedInUser?._id || "",
     meter_end: 0,
     km: 0,
     security_name: "",
   });
 
+
   useEffect(() => {
-    console.log("Initial vehicleData:", vehicleData); // Debugging step
     if (vehicleData) {
       setFormData({
         ...vehicleData,
@@ -72,15 +100,13 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
       if (vehicleData?.id) {
         dispatch(startLoading());
         try {
-          console.log("Fetching data for ID:", vehicleData.id); // Debugging step
+
           const response = await dispatch(getVehicleMoveReg(vehicleData.id) as any).unwrap();
           
-          console.log("API Response:", response); // Debugging step
           
           if (response?.success) {
             const fetchedData = response.data;
-            console.log("Fetched Data:", fetchedData); // Debugging step
-  
+       
             setFormData({
               ...fetchedData,
               date_from: fetchedData.date_from || "",
@@ -95,7 +121,6 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
             toast.error("Failed to load vehicle data.");
           }
         } catch (error: any) {
-          console.error("Error fetching vehicle data:", error); // Debugging step
           toast.error(error.message || "Error fetching vehicle data.");
         } finally {
           dispatch(stopLoading());
@@ -168,19 +193,20 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
         meter_end: formData.meter_end,      // ✅ Fixed type issue
         km: formData.km,                    // ✅ Fixed type issue
         security_name: formData.security_name,
+        performed_by_user: formData.performed_by_user,
       };
 
       let result;
-      if (vehicleData && vehicleData.id) {
+      if (vehicleData && vehicleData._id) {
         
-        result = await dispatch(updateVehicleMoveReg({ id: vehicleData.id, data: formattedData }) as any).unwrap();
+        result = await dispatch(updateVehicleMoveReg({ id: vehicleData._id, data: formattedData }) as any).unwrap();
       } else {
-        console.log("Creating new record");
+   
         result = await dispatch(createVehicleMoveReg(formattedData) as any).unwrap();
       }
 
       if (result?.success) {
-        toast.success(vehicleData?.id ? "Form updated successfully!" : "Form created successfully!");
+        toast.success(vehicleData?._id ? "Form updated successfully!" : "Form created successfully!");
         handleClose();
       } else {
         throw new Error(result?.message || "Failed to submit form");
@@ -217,8 +243,8 @@ const VehicleMovementRegister = ({ handleClose, vehicleData }: VehicleMovementRe
             <h2 className="text-sm font-bold uppercase text-primary-1 mb-2">Vehicle Number</h2>
             <input
               type="text"
-              name="veh_number"
               placeholder="Enter vehicle number"
+              name="veh_number"
               value={formData.veh_number}
               onChange={handleChange}
               className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2"

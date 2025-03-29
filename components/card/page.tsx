@@ -1,25 +1,29 @@
+"use client";
+
 import React from "react";
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 
 interface CardProps {
   text: string;
-  backgroundImage: StaticImageData;
+  backgroundImage: string; // Now accepts dynamic image URLs
   className?: string;
 }
 
 const Card: React.FC<CardProps> = ({ text, backgroundImage, className }) => {
+  const fallbackImage = "/images/default-image.jpg"; // Default fallback image in public folder
+
   return (
     <div
       className={`w-full h-full relative rounded-xl shadow-2xl overflow-hidden transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer ${className}`}
     >
-      {/* Background Image - Full Cover */}
+      {/* Background Image with Fallback */}
       <Image
-        src={backgroundImage}
+        src={backgroundImage || fallbackImage} // Use fallback if backgroundImage is undefined
         alt={text}
         layout="fill"
         objectFit="cover"
         className="absolute"
-        priority // Ensures faster loading
+        priority // Faster image loading
       />
 
       {/* Dark Overlay for Text Readability */}

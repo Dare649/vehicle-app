@@ -1,27 +1,37 @@
 import { createAsyncThunk} from "@reduxjs/toolkit";
 import axiosInstance from "@/util/axiosInstance";
 
-// Define vehicle movement register data type
-interface VehicleMoveReg {
-    veh_number: string;
-    month: string;
-    week: string;
-    date_from: string;
-    date_to: string;
-    meter_start: number;
-    meter_end: number;
-    km: number;
-    security_name: string;
+interface MonthlyVehMainChecklist {
+    veh_name: string;
+    date: string;
+    checked_by: string;
+    current_mileage: number;
+    date_of_last_oil_change: string;
+    date_of_last_oil_filter_change: string;
+    date_of_last_air_filter_change: string;
+    date_of_carbin_filter_change: string;
+    date_engine_tune_up: string;
+    mileage_of_last_oil_change: number;
+    mileage_of_last_air_filter_change: number;
+    mileage_of_last_tire_rotation: number;
+    checklist_items: ChecklistItem[];
     performed_by_user: string;
-}
+  }
+  
+  interface ChecklistItem {
+    item: string;
+    status: number;
+    remark: string;
+  }
+  
 
 // Create form
-export const createVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/createVehicleMoveReg",
-    async (data: VehicleMoveReg, { rejectWithValue }) => {
+export const createMonthlyVehMainChecklist = createAsyncThunk(
+    "monthly-vehicle-maintenance-checklist/createMonthlyVehMainChecklist",
+    async (data: MonthlyVehMainChecklist, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.post(
-                "/vehicle-movement-register/create_vehicle_movement_register_form",
+                "/monthly-checklist/create_monthly_checklist",
                 data
             );
             return response.data;
@@ -34,12 +44,12 @@ export const createVehicleMoveReg = createAsyncThunk(
 );
 
 // Update form
-export const updateVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/updateVehicleMoveReg", 
-    async ({ id, data }: { id: string; data: VehicleMoveReg }, { rejectWithValue }) => {
+export const updateMonthlyVehMainChecklist = createAsyncThunk(
+    "monthly-vehicle-maintenance-checklist/updateMonthlyVehMainChecklist", 
+    async ({ id, data }: { id: string; data: MonthlyVehMainChecklist }, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.put( 
-                `/vehicle-movement-register/update_vehicle_movement_register_form/${id}`,
+                `/monthly-checklist/update_monthly_checklist/${id}`,
                 data
             );
             return response.data;
@@ -51,11 +61,11 @@ export const updateVehicleMoveReg = createAsyncThunk(
     }
 );
 
-export const getVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/getVehicleMoveReg",
+export const getMonthlyVehMainChecklist = createAsyncThunk(
+    "monthly-vehicle-maintenance-checklist/getMonthlyVehMainChecklist",
     async (vehicleId: string, { rejectWithValue }) => {
       try {
-        const response = await axiosInstance.get(`/vehicle-movement-register/get_vehicle_movement_register_form/${vehicleId}`);
+        const response = await axiosInstance.get(`/monthly-checklist/get_monthly_checklist/${vehicleId}`);
         return response.data.data;
       } catch (error: any) {
         return rejectWithValue(error.response?.data || error.message);
@@ -64,16 +74,16 @@ export const getVehicleMoveReg = createAsyncThunk(
   );
   
 
-export const deleteVehicleMoveReg = createAsyncThunk<
+export const deleteMonthlyVehMainChecklist = createAsyncThunk<
     string, // Return type (ID of deleted item)
     string, // Argument type (ID to delete)
     { rejectValue: { message: string } } // Error type
 >(
-    "vehicle-move-reg/deleteVehicleMoveReg",
+    "monthly-vehicle-maintenance-checklist/deleteMonthlyVehMainChecklist",
     async (id, { rejectWithValue }) => { 
         try {
             await axiosInstance.delete(
-                `/vehicle-movement-register/delete_vehicle_movement_register_form/${id}`
+                `/monthly-checklist/delete_monthly_checklist/${id}`
             );
             return id; // Return the deleted ID
         } catch (error: any) {
@@ -86,12 +96,12 @@ export const deleteVehicleMoveReg = createAsyncThunk<
 
 
 // Get all forms
-export const getAllVehicleMoveReg = createAsyncThunk(
-    "vehicle-move-reg/getAllVehicleMoveReg", 
+export const getAllMonthlyVehMainChecklist = createAsyncThunk(
+    "monthly-vehicle-maintenance-checklist/getAllMonthlyVehMainChecklist", 
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get( 
-                `/vehicle-movement-register/get_vehicle_movement_register_form`
+                `/monthly-checklist/get_monthly_checklist`
             );
             return response.data.data; 
         } catch (error: any) {

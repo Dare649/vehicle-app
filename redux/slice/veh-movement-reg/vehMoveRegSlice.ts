@@ -20,6 +20,7 @@ interface VehicleMoveRegData {
     meter_end: number;
     km: number;
     security_name: string;
+    performed_by_user: string;
 }
 
 interface VehicleMoveRegState {

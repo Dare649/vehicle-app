@@ -120,8 +120,8 @@ const CheckTable: React.FC<CheckTableProps> = ({
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto">
-      <table className="w-full text-sm text-left mt-5">
+      <div className="flex-1 overflow-auto border-2 border-primary-2 rounded-xl lg:p-10 sm:p-3">
+      <table className="w-full text-sm text-left mt-5 ">
         <thead className="capitalize border-b-2 border-primary-2">
           <tr >
             <th className="px-4 py-3">

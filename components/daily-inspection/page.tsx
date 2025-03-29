@@ -1,41 +1,283 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Select from "react-select";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { frontRare, generalDetails, driverArea } from "@/data/dummy";
+import { toast } from 'react-toastify';
+import { useDispatch, useSelector } from 'react-redux';
+import { startLoading, stopLoading } from '@/redux/slice/loadingSlice';
+import { RootState } from '@/redux/store';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  createDailyInspectionReport,
+  updateDailyInspectionReport,
+  getDailyInspectionReport
+} from "@/redux/slice/daily-inspection-report/dailyInspectionReport";
+import { getSignedInUser } from "@/redux/slice/auth/auth";
 
 interface DailyInspectionProps {
   handleClose: () => void;
+  inspectionData?: FormState | null;
 }
 
-const DailyInspection = ({ handleClose }: DailyInspectionProps) => {
+
+interface InspectionItem {
+  item: string;
+  status: number;
+}
+
+interface FormState {
+  id?: string;
+  _id?: string;
+  date: string; 
+  driver_name: string; 
+  total_mileage: number; 
+  general_items: InspectionItem[]; 
+  performed_by_user: string;
+  driver_area_items: InspectionItem[]; 
+  front_rare_items: InspectionItem[]; 
+}
+
+const DailyInspection = ({ handleClose, inspectionData }: DailyInspectionProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [signedDate, setSignedDate] = useState<Date | null>(null);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
-  
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setSignature(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+  const dispatch = useDispatch<any>();
+  const isLoading = useSelector((state: RootState) => state.loading.isLoading);
+  const router = useRouter();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const signedInUser = useSelector((state: RootState) => state.auth.user);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        dispatch(startLoading());
+        await dispatch(getSignedInUser()).unwrap();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to fetch signed-in user");
+      } finally {
+        dispatch(stopLoading());
       }
     };
 
-  
+    fetchUser();
+  }, [dispatch]);
 
+  const [formData, setFormData] = useState<FormState>({
+    date: "", 
+    driver_name: "", 
+    total_mileage: 0, 
+    general_items: [], 
+    driver_area_items: [], 
+    front_rare_items: [], 
+    performed_by_user: signedInUser?._id || ""
+  });
+
+
+  useEffect(() => {
+    if (inspectionData) {
+      setFormData({
+        ...inspectionData,
+        date: inspectionData.date || "",
+      });
+
+      setSelectedDate(inspectionData.date ? new Date(inspectionData.date) : null);
+      
+    }
+  }, [inspectionData]);
+
+
+  useEffect(() => {
+      const fetchInspection = async () => {
+        if (inspectionData?.id) {
+          dispatch(startLoading());
+          try {
+            const response = await dispatch(getDailyInspectionReport(inspectionData.id) as any).unwrap();
+  
+            if (response?.success) {
+              const fetchedData = response.data;
+  
+              setFormData({
+                ...fetchedData,
+                date: fetchedData.date || "",
+              });
+  
+              setSelectedDate(fetchedData.date ? new Date(fetchedData.date) : null);
+             
+            } else {
+               toast.error("Failed to load inspection data.");
+            }
+          } catch (error: any) {
+            toast.error(error.message || "Error fetching inspection data.");
+          } finally {
+              dispatch(stopLoading());
+            }
+        }
+      };
+  
+      fetchInspection();
+    }, [inspectionData?.id, dispatch]);
+  
+     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+         const { name, value } = event.target;
+         setFormData((prevData) => ({
+           ...prevData,
+           [name]: ["total_mileage"].includes(name) ? (value === "" ? "" : Number(value)) : value,
+         }));
+       };
+      
+
+      const handleDateChange = (date: Date | null, field: keyof FormState) => {
+        if (date) {
+          const formattedDate = date.toISOString().split('T')[0];
+          setFormData((prevData) => ({
+            ...prevData,
+            [field]: formattedDate,
+          }));
+    
+          if (field === "date") setSelectedDate(date);
+        }
+      };
+
+
+      const handleGeneralItemChange = (index: number, value: string | number) => {
+        setFormData((prevData) => {
+          const updatedGeneralItems = prevData.general_items.map((item, i) =>
+            i === index ? { ...item, status: typeof value === "string" ? parseInt(value, 10) : value } : item
+          );
+      
+          if (!updatedGeneralItems[index]) {
+            updatedGeneralItems[index] = { item: generalDetails[index], status: 0 };
+          }
+      
+          return {
+            ...prevData,
+            general_items: updatedGeneralItems,
+          };
+        });
+      };
+      
+      
+      const handleFrontRareChange = (index: number, value: string | number) => {
+        setFormData((prevData) => {
+          const updatedFrontRareItems = prevData.front_rare_items.map((item, i) =>
+            i === index ? { ...item, status: typeof value === "string" ? parseInt(value, 10) : value } : item
+          );
+      
+          if (!updatedFrontRareItems[index]) {
+            updatedFrontRareItems[index] = { item: frontRare[index], status: 0 };
+          }
+      
+          return {
+            ...prevData,
+            front_rare_items: updatedFrontRareItems,
+          };
+        });
+      };
+      
+      
+      const handleDriverAreaChange = (index: number, value: string | number) => {
+        setFormData((prevData) => {
+          const updatedDriverAreaItems = prevData.driver_area_items.map((item, i) =>
+            i === index ? { ...item, status: typeof value === "string" ? parseInt(value, 10) : value } : item
+          );
+      
+          if (!updatedDriverAreaItems[index]) {
+            updatedDriverAreaItems[index] = { item: driverArea[index], status: 0 };
+          }
+      
+          return {
+            ...prevData,
+            driver_area_items: updatedDriverAreaItems,
+          };
+        });
+      };
+      
+      
+      
+
+
+      const validateForm = () => {
+        let newErrors: Record<string, string> = {};
+        if (!formData.driver_name) newErrors.driver_name = "Driver name is required";
+        if (!formData.total_mileage) newErrors.total_mileage = "Department is required";
+        if (formData.general_items.some(item => item.status === undefined)) {
+          newErrors.general_items = "All general items must have a status.";
+        }
+        if (formData.driver_area_items.some(item => item.status === undefined)) {
+          newErrors.driver_area_items = "All driver area items must have a status.";
+        }
+        if (formData.front_rare_items.some(item => item.status === undefined)) {
+          newErrors.front_rare_items = "All front/rare items must have a status.";
+        }
+        
+        if (!selectedDate) newErrors.date = "date of reporting is required";
+    
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+    
   const inspectionOptions = [
     { value: "", label: "Select inspection code" },
-    { value: "x", label: "X" },
-    { value: "o", label: "O" },
+    { value: 0, label: "X" },
+    { value: 1, label: "O" },
   ];
+
+   const handleSubmit = async (event: React.FormEvent) => {
+      event.preventDefault();
+      if (!validateForm()) return;
+    
+      dispatch(startLoading());
+      try {
+        // Debug statements to verify data
+        console.log("inspectionData:", inspectionData);
+        console.log("inspectionData._id:", inspectionData?._id);
+    
+        const formattedData = {
+          date: selectedDate ? selectedDate.toISOString().split('T')[0] : "",
+          driver_name: formData.driver_name,
+          total_mileage: formData.total_mileage,
+          general_items: formData.general_items,
+          driver_area_items: formData.driver_area_items,
+          front_rare_items: formData.front_rare_items,
+          performed_by_user: formData.performed_by_user,
+        };
+    
+        let result;
+    
+        if (inspectionData && inspectionData._id) {
+          // Update existing activity
+          console.log("Updating activity with ID:", inspectionData._id);
+          result = await dispatch(
+            updateDailyInspectionReport({ id: inspectionData._id, data: formattedData }) as any
+          ).unwrap();
+        } else {
+          // Create new activity
+          console.log("Creating new activity");
+          result = await dispatch(createDailyInspectionReport(formattedData) as any).unwrap();
+        }
+    
+        if (result?.success) {
+          toast.success(
+            inspectionData?._id
+              ? "Inspection report updated successfully!"
+              : "Inspection report created successfully!"
+          );
+          handleClose();
+        } else {
+          throw new Error(result?.message || "Failed to submit inspection report");
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Failed to submit inspection report, try again!");
+      } finally {
+        dispatch(stopLoading());
+      }
+    };
 
   return (
     <div className="w-full h-[80vh] flex flex-col">
@@ -54,9 +296,13 @@ const DailyInspection = ({ handleClose }: DailyInspectionProps) => {
         <hr className="w-full border-none h-0.5 bg-gray-300" />
       </div>
 
+      <Link href="/daily-inspection-table" className='text-primary-2 font-bold text-right'>
+        view table
+      </Link>
+
       {/* Scrollable Content */}
       <div className="w-full lg:p-3 sm:p-2 flex-1 overflow-y-auto custom-scroll">
-        <form className="w-full">
+        <form onSubmit={handleSubmit} className="w-full">
           {/* Driver Name Input */}
           <div className="mb-3 w-full">
             <h2 className="text-sm font-bold uppercase text-primary-1 mb-2">
@@ -64,9 +310,13 @@ const DailyInspection = ({ handleClose }: DailyInspectionProps) => {
             </h2>
             <input
               type="text"
+              name="driver_name"
+              value={formData.driver_name}
+              onChange={handleChange}
               placeholder="Enter driver name"
               className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2"
             />
+            {errors.driver_name && <p className="text-red-500 text-sm">{errors.driver_name}</p>}
           </div>
 
           {/* Date & Mileage */}
@@ -77,7 +327,7 @@ const DailyInspection = ({ handleClose }: DailyInspectionProps) => {
               </h2>
               <DatePicker
                 selected={selectedDate}
-                onChange={(date: Date | null) => setSelectedDate(date)}
+                onChange={(date) => handleDateChange(date, "date")}
                 dateFormat="dd-MM-yyyy"
                 placeholderText="Select date"
                 className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2 cursor-pointer"
@@ -90,9 +340,13 @@ const DailyInspection = ({ handleClose }: DailyInspectionProps) => {
               </h2>
               <input
                 type="number"
+                name="total_mileage"
+                value={formData.total_mileage}
+                onChange={handleChange}
                 placeholder="Enter total mileage"
                 className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
+              {errors.total_mileage && <p className="text-red-500 text-sm">{errors.total_mileage}</p>}
             </div>
           </div>
 
@@ -100,7 +354,7 @@ const DailyInspection = ({ handleClose }: DailyInspectionProps) => {
           <div className="mb-3 w-full">
             <p className="text-xs font-bold text-gray-500">
               For each trip, enter the appropriate inspection code in the
-              designated column: ✔ X – Item passed inspection ❌ O – Item is
+              designated column: ✔ O – Item passed inspection ❌ X – Item is
               defective (requires attention). If an item is marked X or O,
               provide additional details in the comment section. Items not
               marked are assumed to have no known defects. This form serves as
@@ -117,209 +371,115 @@ const DailyInspection = ({ handleClose }: DailyInspectionProps) => {
               <hr className="w-full border-none h-0.5 bg-gray-300" />
             </div>
 
-            <div className="w-full">
-              {generalDetails.map((item, id) => (
-                <div key={id} className="w-full mb-2">
-                  <h2 className="font-bold uppercase text-primary-1 text-xs mb-2">
-                    {item}
-                  </h2>
-                  <div className="relative rounded-lg">
-                    <Select
-                      options={inspectionOptions}
-                      onMenuOpen={() => setOpenDropdown(id)}
-                      onMenuClose={() => setOpenDropdown(null)}
-                      className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1"
-                      classNamePrefix={`Select ${item}`}
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          borderRadius: "0.5rem", // rounded-lg equivalent
-                          borderColor: "#D1D5DB", // Tailwind's gray-300
-                          padding: "2px",
-                          "&:hover": { borderColor: "#1D4ED8" }, // Tailwind's primary-1 color
-                          boxShadow: "none",
-                        }),
-                      }}
-                      components={{
-                        IndicatorSeparator: () => null,
-                        DropdownIndicator: () => (
-                          <div className="pr-3 text-gray-500">
-                            {openDropdown === id ? (
-                              <IoIosArrowUp size={20} />
-                            ) : (
-                              <IoIosArrowDown size={20} />
-                            )}
-                          </div>
-                        ),
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+           {/* Vehicle General Details */}
+<div className="w-full">
+  {/* <h2 className="font-bold text-gray-400 uppercase">
+    Vehicle General Details
+  </h2> */}
+  {/* <div className="py-2">
+    <hr className="w-full border-none h-0.5 bg-gray-300" />
+  </div> */}
+  <div className="w-full">
+    {generalDetails.map((item, id) => (
+      <div key={id} className="w-full mb-2">
+        <h2 className="font-bold uppercase text-primary-1 text-xs mb-2">
+          {item}
+        </h2>
+        <div className="relative rounded-lg">
+        <Select
+            options={inspectionOptions}
+            value={
+              formData.general_items[id]?.status !== undefined
+                ? inspectionOptions.find(
+                    (option) => option.value === formData.general_items[id].status
+                  )
+                : null
+            }
+            onChange={(selectedOption) =>
+              handleGeneralItemChange(id, selectedOption?.value ?? 0)
+            }
+            className="w-full"
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
           </div>
 
-          <div className="w-full py-5">
-            <h2 className="font-bold text-gray-400 uppercase">
-              Vehicle front rare Details
-            </h2>
-            <div className="py-2">
-              <hr className="w-full border-none h-0.5 bg-gray-300" />
-            </div>
+         {/* Front & Rear Items */}
+<div className="w-full mt-6">
+  <h2 className="font-bold text-gray-400 uppercase">
+    Front & Rear Inspection
+  </h2>
+  <div className="py-2">
+    <hr className="w-full border-none h-0.5 bg-gray-300" />
+  </div>
+  <div className="w-full">
+    {frontRare.map((item, id) => (
+      <div key={id} className="w-full mb-2">
+        <h2 className="font-bold uppercase text-primary-1 text-xs mb-2">
+          {item}
+        </h2>
+        <div className="relative rounded-lg">
+        <Select
+            options={inspectionOptions}
+            value={
+              formData.front_rare_items[id]?.status !== undefined
+                ? inspectionOptions.find(
+                    (option) => option.value === formData.front_rare_items[id].status
+                  )
+                : null
+            }
+            onChange={(selectedOption) =>
+              handleFrontRareChange(id, selectedOption?.value ?? 0)
+            }
+            className="w-full"
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
-            <div className="w-full">
-              {frontRare.map((item, id) => (
-                <div key={id} className="w-full mb-2">
-                  <h2 className="font-bold uppercase text-primary-1 text-xs mb-2">
-                    {item}
-                  </h2>
-                  <div className="relative rounded-lg">
-                    <Select
-                      options={inspectionOptions}
-                      onMenuOpen={() => setOpenDropdown(id)}
-                      onMenuClose={() => setOpenDropdown(null)}
-                      className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1"
-                      classNamePrefix={`Select ${item}`}
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          borderRadius: "0.5rem", // rounded-lg equivalent
-                          borderColor: "#D1D5DB", // Tailwind's gray-300
-                          padding: "2px",
-                          "&:hover": { borderColor: "#1D4ED8" }, // Tailwind's primary-1 color
-                          boxShadow: "none",
-                        }),
-                      }}
-                      components={{
-                        IndicatorSeparator: () => null,
-                        DropdownIndicator: () => (
-                          <div className="pr-3 text-gray-500">
-                            {openDropdown === id ? (
-                              <IoIosArrowUp size={20} />
-                            ) : (
-                              <IoIosArrowDown size={20} />
-                            )}
-                          </div>
-                        ),
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="w-full py-5">
-            <h2 className="font-bold text-gray-400 uppercase">
-              Vehicle driver area Details
-            </h2>
-            <div className="py-2">
-              <hr className="w-full border-none h-0.5 bg-gray-300" />
-            </div>
-
-            <div className="w-full">
-              {driverArea.map((item, id) => (
-                <div key={id} className="w-full mb-2">
-                  <h2 className="font-bold uppercase text-primary-1 text-xs mb-2">
-                    {item}
-                  </h2>
-                  <div className="relative rounded-lg">
-                    <Select
-                      options={inspectionOptions}
-                      onMenuOpen={() => setOpenDropdown(id)}
-                      onMenuClose={() => setOpenDropdown(null)}
-                      className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1"
-                      classNamePrefix={`Select ${item}`}
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          borderRadius: "0.5rem", // rounded-lg equivalent
-                          borderColor: "#D1D5DB", // Tailwind's gray-300
-                          padding: "2px",
-                          "&:hover": { borderColor: "#1D4ED8" }, // Tailwind's primary-1 color
-                          boxShadow: "none",
-                        }),
-                      }}
-                      components={{
-                        IndicatorSeparator: () => null,
-                        DropdownIndicator: () => (
-                          <div className="pr-3 text-gray-500">
-                            {openDropdown === id ? (
-                              <IoIosArrowUp size={20} />
-                            ) : (
-                              <IoIosArrowDown size={20} />
-                            )}
-                          </div>
-                        ),
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+         {/* Driver Area Items */}
+<div className="w-full mt-6">
+  <h2 className="font-bold text-gray-400 uppercase">
+    Driver Area Inspection
+  </h2>
+  <div className="py-2">
+    <hr className="w-full border-none h-0.5 bg-gray-300" />
+  </div>
+  <div className="w-full">
+    {driverArea.map((item, id) => (
+      <div key={id} className="w-full mb-2">
+        <h2 className="font-bold uppercase text-primary-1 text-xs mb-2">
+          {item}
+        </h2>
+        <div className="relative rounded-lg">
+        <Select
+            options={inspectionOptions}
+            value={
+              formData.driver_area_items[id]?.status !== undefined
+                ? inspectionOptions.find(
+                    (option) => option.value === formData.driver_area_items[id].status
+                  )
+                : null
+            }
+            onChange={(selectedOption) =>
+              handleDriverAreaChange(id, selectedOption?.value ?? 0)
+            }
+            className="w-full"
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
           
-          <textarea
-            className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2"
-            placeholder="Drivers comment"
-            rows={3}
-          />
+          
 
-          <div className="w-full mb-2">
-            <p className="text-xs font-bold text-gray-500">
-              PRE-TRIP DRIVER CERTIFICATION:
-              By checking the box below, I certify that I have reviewed the previous inspection report and conducted a pre-trip maintenance inspection for each listed item. I have noted only those with identified defects. <span>
-                <input type="checkbox" className="cursor-pointer w-4 h-4"/>
-              </span>
-            </p>
-          </div>
-
-
-          <div className="w-full mb-2">
-            <p className="text-xs font-bold text-gray-500">
-              PRE-TRIP DRIVER CERTIFICATION:
-              I have conducted a post-trip maintenance inspection for each listed item and have recorded only those with identified defects. Additionally, I have checked the vehicle for any remaining students or belongings. <span>
-                <input type="checkbox" className="cursor-pointer w-4 h-4"/>
-              </span>
-            </p>
-          </div>
-
-          <textarea
-            className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2"
-            placeholder="Mechanic comment"
-            rows={5}
-          />
-
-
-          <div className="flex items-start gap-x-3 my-3">
-            <div className="flex-1 w-full">
-              <h2 className="text-sm font-bold uppercase text-primary-1 mb-2">date</h2>
-              <DatePicker
-                selected={signedDate}
-                onChange={(date: Date | null) => setSignedDate(date)}
-                dateFormat="dd-MM-yyyy"
-                placeholderText="Select date"
-                className="w-full bg-transparent outline-none border-2 border-gray-300 focus:border-primary-1 rounded-lg p-2 cursor-pointer"
-              />
-            </div>
-
-            <div className="flex-1 w-full">
-              <h2 className="text-sm font-bold uppercase text-primary-1 mb-2">mechanic signature</h2>
-              <div className="relative w-full h-11 border-2 border-gray-300 rounded-lg focus:border-primary-1 flex items-center justify-center overflow-hidden cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg"
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  onChange={handleImageUpload}
-                />
-                {signature ? (
-                  <img src={signature} alt="Signature Preview" className="w-full h-full object-contain" />
-                ) : (
-                  <span className="text-gray-500 text-sm">Click to Upload Signature</span>
-                )}
-              </div>
-            </div>
-          </div>
+    
           
           {/* Submit Button */}
           <button

@@ -10,6 +10,7 @@ interface VehMainReqForm {
     description_of_problem: string;
     completed_date: string;
     mechanic_name: string;
+    performed_by_user: string;
 }
 
 
@@ -55,12 +56,12 @@ export const updateVehicleMainReq = createAsyncThunk(
 // get form
 export const getVehicleMainReq = createAsyncThunk(
     "vehicle-main-req/getVehicleMainReq", 
-    async ({id}: {id: string}, { rejectWithValue }) => {
+    async (id: string, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get( 
                 `/vehicle-maintenance-req-form/get_vehicle_maintenance_req_form/${id}`
             );
-            return response.data;
+            return response.data.data;
         } catch (error: any) {
             return rejectWithValue({
                 message: error.response?.data?.message || error.message || "Failed to get form, try again"
@@ -70,22 +71,23 @@ export const getVehicleMainReq = createAsyncThunk(
 );
 
 
-// delete form
+// Delete form
 export const deleteVehicleMainReq = createAsyncThunk(
-    "vehicle-main-req/deleteVehicleMainReq", 
-    async ({id}: {id: string}, { rejectWithValue }) => {
-        try {
-            const response = await axiosInstance.get( 
-                `/vehicle-maintenance-req-form/delete_vehicle_maintenance_req_form/${id}`
-            );
-            return response.data;
-        } catch (error: any) {
-            return rejectWithValue({
-                message: error.response?.data?.message || error.message || "Failed to delete form, try again"
-            });
-        }
+    "vehicle-main-req/deleteVehicleMainReq",
+    async ({ id }: { id: string }, { rejectWithValue }) => {
+      try {
+        const response = await axiosInstance.delete(
+          `/vehicle-maintenance-req-form/delete_vehicle_maintenance_req_form/${id}`
+        );
+        return response.data;
+      } catch (error: any) {
+        return rejectWithValue({
+          message: error.response?.data?.message || error.message || "Failed to delete form",
+        });
+      }
     }
-);
+  );
+  
 
 
 // get all form
@@ -96,7 +98,7 @@ export const getAllVehicleMainReq = createAsyncThunk(
             const response = await axiosInstance.get( 
                 `/vehicle-maintenance-req-form/get_all_vehicle_maintenance_req_form`
             );
-            return response.data;
+            return response.data.data;
         } catch (error: any) {
             return rejectWithValue({
                 message: error.response?.data?.message || error.message || "Failed to get forms, try again"
